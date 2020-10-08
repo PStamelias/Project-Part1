@@ -81,7 +81,7 @@ int main(int argc,char** argv){
 		printf("%s\n","Give the parameter N:");
 		scanf("%d",&N);
 		printf("%s\n","Give the parameter R:");
-		scanf("%d",&R);
+		scanf("%lf",&R);
 		if(K==-1&&M==-1&&probes==-1&&N==-1&&R==-1){
 			K=3;
 			M=10;
