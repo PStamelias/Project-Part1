@@ -1,10 +1,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include "struct1.h"
 #define MAX_LENGTH_WORD 500
 int main(int argc,char** argv){
 	int arguments_number=argc-1;
 	int K,L,N;
+	image_node* image_table;
 	double R;
 	char* input_file;
 	char* query_file;
@@ -81,13 +83,7 @@ int main(int argc,char** argv){
 			R=1.0;
 		}
 	}
-	printf("K=%d\n",K);
-	printf("L=%d\n",L);
-	printf("N=%d\n",N);
-	printf("R=%f\n",R);
-	printf("output_file=%s\n",output_file);
-	printf("input_file=%s\n",input_file);
-	printf("query_file=%s\n",query_file);
+	image_table=image_creation(input_file);
 	free(output_file);
 	free(query_file);
 	free(input_file);
