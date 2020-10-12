@@ -13,7 +13,9 @@ int main(int argc,char** argv) {
 	int K,L,N;
   double R;
 
+
   	int number_of_images=0;
+  	int sum_distances=0;
 
 	image_node* image_table;
 
@@ -93,15 +95,10 @@ int main(int argc,char** argv) {
 		 }
 
 	}
-	image_table=image_creation(input_file,&number_of_images);
-
-  /*printf("\n\ninput_file = %s\n", input_file);
-  printf("query_file = %s\n", query_file);
-  printf("output_file = %s\n", output_file);
-  printf("k = %d\n", K);
-  printf("L = %d\n", L);
-  printf("N = %d\n", N);
-  printf("R = %lf\n", R);*/
+	/*creating h tables*/
+	input_info(&number_of_images,&sum_distances,input_file);
+	int*** L_tables=create_Ltables(L,K,10,sum_distances);
+	image_table=image_creation(input_file);
 
 	free(output_file);
 	free(query_file);

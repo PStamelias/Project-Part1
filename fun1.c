@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <inttypes.h>
 #include "struct1.h"
 
-image_node* image_creation(char* input,int* num_images) {
+image_node* image_creation(char* input) {
 
   FILE* file;
 
@@ -38,7 +39,62 @@ image_node* image_creation(char* input,int* num_images) {
 		}
 
 	fclose(file);
-	*num_images=number_of_images;
 	return my_table;
 
+}
+
+
+
+int* create_hi(int w,int d){/*Function returns a d-size table with values between [0,w-1](s numbers)*/
+	srand(time(NULL));
+
+	int* my_table=malloc(d*sizeof(int));
+
+	for(int i=0;i<d;++i)
+		my_table[i]=rand()%w;
+	
+	return my_table;
+}
+
+
+
+int** create_g(int k,int w,int d){/*Function that returns k-functions h-create hash_table*/
+	int** my_table=malloc(k*sizeof(int*));
+
+	for(int i=0;i<k;++i)
+		my_table[i]=create_hi(w,d);
+	
+
+	return my_table;
+}
+
+
+
+int*** create_Ltables(int L,int k,int w,int d){/*Function that create L g hash tables*/
+	int*** my_table=malloc(L*sizeof(int**));
+
+	for(int i=0;i<L;++i)
+		my_table[i]=create_g(k,w,d);
+
+	return my_table;
+}
+
+void input_info(int* number_of_im,int* sum,char* input){
+	FILE* file;
+	int magic_number;
+	int number_of_images;
+	int number_of_columns;
+	int number_of_rows;
+	file=fopen(input,"r");
+	fread(&magic_number,sizeof(int),1,file);
+	magic_number = ((magic_number>>24)&0xff)|((magic_number<<8)&0xff0000)|((magic_number>>8)&0xff00)|((magic_number<<24)&0xff000000);
+	fread(&number_of_images,sizeof(int),1,file);
+	number_of_images = ((number_of_images>>24)&0xff)|((number_of_images<<8)&0xff0000)|((number_of_images>>8)&0xff00)|((number_of_images<<24)&0xff000000);
+	fread(&number_of_rows,sizeof(int),1,file);
+	number_of_rows = ((number_of_rows>>24)&0xff)|((number_of_rows<<8)&0xff0000)|((number_of_rows>>8)&0xff00)|((number_of_rows<<24)&0xff000000);
+	fread(&number_of_columns,sizeof(int),1,file);
+	number_of_columns = ((number_of_columns>>24)&0xff)|((number_of_columns<<8)&0xff0000)|((number_of_columns>>8)&0xff00)|((number_of_columns<<24)&0xff000000);
+	fclose(file);
+	*number_of_im=number_of_images;
+	*sum=number_of_rows*number_of_columns;
 }
