@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include "struct1.h"
 
-image_node* image_creation(char* input) {
+image_node* image_creation(char* input,int* num_images) {
 
   FILE* file;
 
@@ -38,7 +38,7 @@ image_node* image_creation(char* input) {
 		}
 
 	fclose(file);
-
+	*num_images=number_of_images;
 	return my_table;
 
 }

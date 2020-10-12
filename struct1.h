@@ -4,4 +4,4 @@ typedef struct i_node {
 	                /*kai anaparista to dianysma mias eikonas*/
 } image_node;  /*to image_node anaparista mia eikona(to image_number kai to dianusma ths)*/
 
-image_node* image_creation(char*);
+image_node* image_creation(char*,int*);
