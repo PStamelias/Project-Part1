@@ -4,6 +4,8 @@
 #include "struct1.h"
 #define MAX_LENGTH_WORD 500
 
+//CHANGE
+
 int main(int argc,char** argv) {
 
 	int arguments_number = argc-1; /*krataw to plhuos twn orismatwn(afairwntas to orisma ./lsh)*/
