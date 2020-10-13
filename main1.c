@@ -99,13 +99,7 @@ int main(int argc,char** argv) {
 	input_info(&number_of_images,&sum_distances,input_file);
 	int*** L_tables=create_Ltables(L,K,10,sum_distances);
 	image_table=image_creation(input_file);
-
-	free(output_file);
-	free(query_file);
-	free(input_file);
-	for(int i=0;i<number_of_images;i++)
-		free(image_table[i].pixels);
-	free(image_table);
+	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,L_tables);
 	return 0;
 
 }

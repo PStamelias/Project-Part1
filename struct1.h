@@ -9,3 +9,4 @@ int* create_hi(int ,int);
 int** create_g(int ,int ,int );
 int*** create_Ltables(int ,int ,int ,int );
 void input_info(int* ,int*,char* );
+void exit_memory(char* query_file,char* output,char* input,int number_of_images,image_node* image_table,int L,int K,int*** L_tables);

@@ -98,3 +98,20 @@ void input_info(int* number_of_im,int* sum,char* input){
 	*number_of_im=number_of_images;
 	*sum=number_of_rows*number_of_columns;
 }
+
+
+
+void exit_memory(char* query_file,char* output,char* input,int number_of_images,image_node* image_table,int L,int K,int*** L_tables){
+	free(output);
+	free(query_file);
+	free(input);
+	for(int i=0;i<number_of_images;i++)
+		free(image_table[i].pixels);
+	free(image_table);
+	for(int i=0;i<L;i++){
+		for(int a=0;a<K;a++)
+			free(L_tables[i][a]);
+		free(L_tables[i]);
+	}
+	free(L_tables);
+}
