@@ -1,10 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include <time.h>
 #include "struct1.h"
 #define MAX_LENGTH_WORD 500
 
-//CHANGE
 
 int main(int argc,char** argv) {
 
@@ -13,9 +13,8 @@ int main(int argc,char** argv) {
 	int K,L,N;
   double R;
 
-
-  	int number_of_images=0;
-  	int sum_distances=0;
+  int number_of_images=0; /*poses eikones exei to Dataset moy(to input_file moy dhladh)*/
+  int distances = 0; /*poses einai oi diastaseis enos dianysmatos(mias eikonas dhladh)*/
 
 	image_node* image_table;
 
@@ -95,11 +94,49 @@ int main(int argc,char** argv) {
 		 }
 
 	}
-	/*creating h tables*/
-	input_info(&number_of_images,&sum_distances,input_file);
-	int*** L_tables=create_Ltables(L,K,10,sum_distances);
-	image_table=image_creation(input_file);
-	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,L_tables);
+	/*creating L hashtables*/
+  FILE *fp;
+
+  fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
+
+	input_info(fp, &number_of_images, &distances); /*diabasa apo to input_file(diekths fp) toys 4 prwtoys akeraioys*/
+	                                               /*kai phra poses eikones exei kai poses diastaseis exei ena dianysma(eikona)*/
+
+  srand(time(NULL));
+
+	int*** s_L_tables = create_s_numbers_ofLtables(L, K, 10, distances);  /*o s_L_tables perilambanei ta s sta opoia katalhgei kaue g synarthsh*/
+
+	image_table = image_creation(fp, number_of_images, distances);
+
+  fclose(fp); /*kleinw to arxeio input_file poy periexei to Dataset moy giati to exw diabasei ki exw topouethsei*/
+              /*tis eikones poy perieixe to Dataset stis domes anazhthshs, dhladh toys pinakes katakermatismoy*/
+
+
+  /*for (int i = 0; i < L; i++) {
+		printf("synarthsh g = %d:\n", i);
+  	for (int j = 0; j < K; j++) {
+			printf("synarthsh h%d:\n", j);
+  		for (int k = 0; k < distances; k++) {
+  			printf("%d ", s_L_tables[i][j][k]);
+  		}
+			printf("\n");
+  	}
+		printf("\n");
+  }*/
+	/*printf("exw %d eikones kai %d diastaseis dianysmatos\n", number_of_images, distances);
+        printf("input file = %s,outfile = %s,queryfile = %s,R = %lf,N = %d,K = %d, L= %d\n",input_file,output_file,query_file,R,N,K,L);
+  for (int i = 0; i < number_of_images; i++) {
+		printf("image_number = %d:\n", image_table[i].image_number);
+  	for (int j = 0; j < distances; j++) {
+  		printf("%d ", image_table[i].pixels[j]);
+			if(((j+1)%28) == 0) printf("\n");
+  	}
+
+  }*/
+
+
+	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables); /*apeleyuerwnw thn mnhmh*/
+
 	return 0;
 
 }

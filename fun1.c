@@ -4,99 +4,94 @@
 #include <inttypes.h>
 #include "struct1.h"
 
-image_node* image_creation(char* input) {
-
-  FILE* file;
-
-	int magic_number;
-	int number_of_images;
-	int number_of_rows;
-	int number_of_columns;
+image_node* image_creation(FILE* file, int number_of_images, int distances) {
 
 	image_node* my_table;
 	unsigned char b;
 
-	file=fopen(input,"r");
-	fread(&magic_number,sizeof(int),1,file);
-	magic_number = ((magic_number>>24)&0xff)|((magic_number<<8)&0xff0000)|((magic_number>>8)&0xff00)|((magic_number<<24)&0xff000000);
-	fread(&number_of_images,sizeof(int),1,file);
-	number_of_images = ((number_of_images>>24)&0xff)|((number_of_images<<8)&0xff0000)|((number_of_images>>8)&0xff00)|((number_of_images<<24)&0xff000000);
-	my_table=malloc(number_of_images*sizeof(image_node));
-	fread(&number_of_rows,sizeof(int),1,file);
-	number_of_rows = ((number_of_rows>>24)&0xff)|((number_of_rows<<8)&0xff0000)|((number_of_rows>>8)&0xff00)|((number_of_rows<<24)&0xff000000);
-	fread(&number_of_columns,sizeof(int),1,file);
-	number_of_columns = ((number_of_columns>>24)&0xff)|((number_of_columns<<8)&0xff0000)|((number_of_columns>>8)&0xff00)|((number_of_columns<<24)&0xff000000);
+  my_table = malloc(number_of_images*sizeof(image_node));
 
-	for(int i=0;i<number_of_images;i++){
-		my_table[i].pixels=malloc(number_of_columns*number_of_rows*sizeof(int));
-		my_table[i].image_number=i+1;
+	for(int i = 0; i < number_of_images; i++) {
+		my_table[i].pixels = malloc(distances*sizeof(int));
+		my_table[i].image_number = i+1;
 	}
 
-	for(int i=0;i<number_of_images;i++)
-		for(int j=0;j<number_of_rows*number_of_columns;j++){
-			fread(&b,sizeof(unsigned char),1,file);
-			my_table[i].pixels[j]=(int)b;
+	for(int i = 0; i < number_of_images; i++)
+		for(int j = 0; j < distances; j++) {
+			fread(&b,sizeof(unsigned char),1,file); /*diabazw ena pixel(poy einai enas akeraios sto [0,255])*/
+                                              /*to pixel to diabazw san unsigned char(ena pixel einai 1 byte)giati diaforetika mporei*/
+                                              /*na moy dwsei arnhtiko apotelesma, pragma poy den uelw*/
+			my_table[i].pixels[j] = (int)b; /*telos kanw cast to b se integer gia na to apouhkeysw sthn j-osth uesh*/
+                                      /*toy pinaka pixels ths sygkekrimenhs eikonas i*/
 		}
 
-	fclose(file);
 	return my_table;
 
 }
 
 
 
-int* create_hi(int w,int d){/*Function returns a d-size table with values between [0,w-1](s numbers)*/
-	srand(time(NULL));
+int* create_hi(int w,int d) { /*Function returns a d-size table with values between [0,w-1](s numbers)*/
 
 	int* my_table=malloc(d*sizeof(int));
 
 	for(int i=0;i<d;++i)
 		my_table[i]=rand()%w;
-	
+
 	return my_table;
 }
 
 
 
-int** create_g(int k,int w,int d){/*Function that returns k-functions h-create hash_table*/
+int** create_g(int k,int w,int d) { /*Function that returns k-functions h-create hash_table*/
 	int** my_table=malloc(k*sizeof(int*));
 
 	for(int i=0;i<k;++i)
 		my_table[i]=create_hi(w,d);
-	
+
 
 	return my_table;
 }
 
 
 
-int*** create_Ltables(int L,int k,int w,int d){/*Function that create L g hash tables*/
+int*** create_s_numbers_ofLtables(int L,int k,int w,int d) { /*Function that create L g hash tables*/
 	int*** my_table=malloc(L*sizeof(int**));
-
-	for(int i=0;i<L;++i)
-		my_table[i]=create_g(k,w,d);
-
-	return my_table;
+                                              /*ayth h synarthsh dinei telika enan trisdiastato pinaka*/
+	for(int i=0;i<L;++i)                        /*o opoios gia kaue synarthsh g(ua exoyme L se ariumo synarthseis g)*/
+		my_table[i]=create_g(k,w,d);              /*dinei k*d akeraioys ariumoys s sto diasthma [0,w)(giati kaue synarthsh*/
+                                              /*g apoteleitai apo k synarthseis h kai kaue synarthsh h xreiazetai d se*/
+	return my_table;                            /*ariumo ariumoys s)*/
 }
 
-void input_info(int* number_of_im,int* sum,char* input){
-	FILE* file;
+
+void input_info(FILE* file, int* number_of_im, int* sum) { /*me thn input_info diabazw apo to arxeio eisodoy toys 4 prwtoys akeraioys*/
+                                                  /*kai epistrefv tis diastaseis ths kaue eikonas(grammes*sthles) kai*/
+                                                         /*to poses eikones exw*/
 	int magic_number;
 	int number_of_images;
 	int number_of_columns;
 	int number_of_rows;
-	file=fopen(input,"r");
+
+
 	fread(&magic_number,sizeof(int),1,file);
 	magic_number = ((magic_number>>24)&0xff)|((magic_number<<8)&0xff0000)|((magic_number>>8)&0xff00)|((magic_number<<24)&0xff000000);
-	fread(&number_of_images,sizeof(int),1,file);
+  /*oi 4 prvtoi akeraioi ariumoi toy arxeioy einai se big endian*/
+  /*toys diabazw loipon se big endian kai gia na toys metatrecw se little endian*/
+  /*kanw thn parapanw diadikasia se epipedo bitwise(kai an ta bytes se */
+  /*big endian exoyn thn seira 0 1 2 3, me thn parapanw metatroph ginontai 3 2 1 0)*/
+
+	fread(&number_of_images,sizeof(int),1,file); /*pairnw to plhuos twn eikonwn*/
 	number_of_images = ((number_of_images>>24)&0xff)|((number_of_images<<8)&0xff0000)|((number_of_images>>8)&0xff00)|((number_of_images<<24)&0xff000000);
-	fread(&number_of_rows,sizeof(int),1,file);
+	fread(&number_of_rows,sizeof(int),1,file); /*pairnw ton ariumo twn grammwn poy exei mia eikona*/
 	number_of_rows = ((number_of_rows>>24)&0xff)|((number_of_rows<<8)&0xff0000)|((number_of_rows>>8)&0xff00)|((number_of_rows<<24)&0xff000000);
-	fread(&number_of_columns,sizeof(int),1,file);
+	fread(&number_of_columns,sizeof(int),1,file); /*pairnw ton ariumo twn sthlwn poy exei mia eikona*/
 	number_of_columns = ((number_of_columns>>24)&0xff)|((number_of_columns<<8)&0xff0000)|((number_of_columns>>8)&0xff00)|((number_of_columns<<24)&0xff000000);
-	fclose(file);
-	*number_of_im=number_of_images;
-	*sum=number_of_rows*number_of_columns;
+
+
+	*number_of_im = number_of_images;
+	*sum = number_of_rows*number_of_columns;
+
 }
 
 
