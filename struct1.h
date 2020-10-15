@@ -13,6 +13,6 @@ int* create_hi(int ,int);
 int** create_g(int ,int ,int );
 int*** create_s_numbers_ofLtables(int ,int ,int ,int );  /*htan h create_Ltables*/
 void input_info(FILE*, int* ,int*);
-unsigned int  compute_g();
+unsigned int  compute_g(image_node* image_table,int number_of_hash_table);
 void exit_memory(char* ,char* ,char* ,int ,image_node* ,int ,int ,int*** ,bucket***,int );
 bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,int number_of_images,int* table_siz);

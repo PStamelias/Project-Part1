@@ -100,15 +100,6 @@ void exit_memory(char* query_file,char* output,char* input,int number_of_images,
 	free(output);
 	free(query_file);
 	free(input);
-	for(int i=0;i<number_of_images;i++)
-		free(image_table[i].pixels);
-	free(image_table);
-	for(int i=0;i<L;i++){
-		for(int a=0;a<K;a++)
-			free(L_tables[i][a]);
-		free(L_tables[i]);
-	}
-	free(L_tables);
 	for(int i=0;i<L;i++){
 		for(int k=0;k<table_size;k++){
 			bucket* p=bucket_ptr[i][k];
@@ -126,10 +117,19 @@ void exit_memory(char* query_file,char* output,char* input,int number_of_images,
 		free(bucket_ptr[i]);
 	}
 	free(bucket_ptr);
+	for(int i=0;i<number_of_images;i++)
+		free(image_table[i].pixels);
+	free(image_table);
+	for(int i=0;i<L;i++){
+		for(int a=0;a<K;a++)
+			free(L_tables[i][a]);
+		free(L_tables[i]);
+	}
+	free(L_tables);
 }
 
 
-unsigned int  compute_g(){
+unsigned int  compute_g(image_node* image_table,int number_of_hash_table){
 	int w=rand()%100000;
 	return w;
 }
@@ -151,22 +151,24 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 	for(int i=0;i<number_of_hash_tables;i++)
 		for(int j=0;j<number_of_images;j++){
 			bucket* p=malloc(sizeof(bucket));
-			int g=compute_g();
+			int g=compute_g(&image_table[j],i);
 			p->g=g;
 			p->next=NULL;
 			p->image_info=&image_table[j];
 			int pos=g%table_size;
-			bucket** start=&bucket_ptrs[i][pos];
-			if(*start==NULL)
-				*start=p;
+			bucket* node=bucket_ptrs[i][pos];
+			if(node==NULL)
+				bucket_ptrs[i][pos]=p;
 			else{
+				bucket* temp=node;
 				while(1){
-					if((*start)->next==NULL){
-						(*start)->next=p;
+					if(temp->next==NULL){
+						temp->next=p;
 						break;
 					}
-					(*start)=(*start)->next;
+					temp=temp->next;
 				}
+
 			}
 		}
 	*table_siz=table_size;
