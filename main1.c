@@ -9,10 +9,10 @@
 int main(int argc,char** argv) {
 
 	int arguments_number = argc-1; /*krataw to plhuos twn orismatwn(afairwntas to orisma ./lsh)*/
-
+	int table_size=0;
 	int K,L,N;
   double R;
-
+  bucket*** bucket_ptr_table; 
   int number_of_images=0; /*poses eikones exei to Dataset moy(to input_file moy dhladh)*/
   int distances = 0; /*poses einai oi diastaseis enos dianysmatos(mias eikonas dhladh)*/
 
@@ -112,30 +112,9 @@ int main(int argc,char** argv) {
               /*tis eikones poy perieixe to Dataset stis domes anazhthshs, dhladh toys pinakes katakermatismoy*/
 
 
-  /*for (int i = 0; i < L; i++) {
-		printf("synarthsh g = %d:\n", i);
-  	for (int j = 0; j < K; j++) {
-			printf("synarthsh h%d:\n", j);
-  		for (int k = 0; k < distances; k++) {
-  			printf("%d ", s_L_tables[i][j][k]);
-  		}
-			printf("\n");
-  	}
-		printf("\n");
-  }*/
-	/*printf("exw %d eikones kai %d diastaseis dianysmatos\n", number_of_images, distances);
-        printf("input file = %s,outfile = %s,queryfile = %s,R = %lf,N = %d,K = %d, L= %d\n",input_file,output_file,query_file,R,N,K,L);
-  for (int i = 0; i < number_of_images; i++) {
-		printf("image_number = %d:\n", image_table[i].image_number);
-  	for (int j = 0; j < distances; j++) {
-  		printf("%d ", image_table[i].pixels[j]);
-			if(((j+1)%28) == 0) printf("\n");
-  	}
 
-  }*/
-
-
-	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables); /*apeleyuerwnw thn mnhmh*/
+	bucket_ptr_table=Hash_Table_Creation(image_table,L,number_of_images,&table_size);
+	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables,bucket_ptr_table,table_size); /*apeleyuerwnw thn mnhmh*/
 
 	return 0;
 
