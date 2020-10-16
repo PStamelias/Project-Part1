@@ -156,11 +156,11 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 			p->next=NULL;
 			p->image_info=&image_table[j];
 			int pos=g%table_size;
-			bucket* node=bucket_ptrs[i][pos];
-			if(node==NULL)
-				bucket_ptrs[i][pos]=p;
+			bucket** node=&bucket_ptrs[i][pos];
+			if(*node==NULL)
+				*node=p;
 			else{
-				bucket* temp=node;
+				bucket* temp=*node;
 				while(1){
 					if(temp->next==NULL){
 						temp->next=p;
@@ -173,4 +173,10 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 		}
 	*table_siz=table_size;
 	return bucket_ptrs;
+}
+
+
+
+void range_search(){
+	
 }

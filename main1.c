@@ -12,6 +12,7 @@ int main(int argc,char** argv) {
 	int table_size=0;
 	int K,L,N;
   double R;
+  char command[MAX_LENGTH_WORD];
   bucket*** bucket_ptr_table; 
   int number_of_images=0; /*poses eikones exei to Dataset moy(to input_file moy dhladh)*/
   int distances = 0; /*poses einai oi diastaseis enos dianysmatos(mias eikonas dhladh)*/
@@ -96,7 +97,8 @@ int main(int argc,char** argv) {
 	}
 	/*creating L hashtables*/
   FILE *fp;
-
+  FILE* out;
+  out =fopen(output_file,"r");
   fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
 
 	input_info(fp, &number_of_images, &distances); /*diabasa apo to input_file(diekths fp) toys 4 prwtoys akeraioys*/
@@ -114,8 +116,28 @@ int main(int argc,char** argv) {
 
 
 	bucket_ptr_table=Hash_Table_Creation(image_table,L,number_of_images,&table_size);
-	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables,bucket_ptr_table,table_size); /*apeleyuerwnw thn mnhmh*/
 
+
+
+	while(1){
+		FILE* q=fopen(query_file,"r");
+		clock_t t; 	
+		t = clock(); 
+		range_search();
+		t = clock() - t; 
+		double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+		fprintf(out,"Execution time of range_search=%f",time_taken);
+		printf("%s\n","Type the name of new query file or type NO if you want to terminate the program");
+		fclose(q);
+		scanf("%s",command);
+		if(!strcmp(command,"NO"))
+			break;
+		else{
+			memset(query_file, 0, strlen(query_file));
+			strcpy(command,query_file);
+		}
+	}
+	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables,bucket_ptr_table,table_size); /*apeleyuerwnw thn mnhmh*/
 	return 0;
 
 }
