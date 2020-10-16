@@ -17,3 +17,8 @@ unsigned int  compute_g(image_node* image_table,int number_of_hash_table);
 void exit_memory(char* ,char* ,char* ,int ,image_node* ,int ,int ,int*** ,bucket***,int );
 bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,int number_of_images,int* table_siz);
 void range_search();
+int manhattan_dist(image_node *image1, image_node *image2, int distances);
+int brute_force(image_node* image_table, int i, int number_of_images, int distances);
+int power(int number, int exponent);
+int mod(int a, int b);
+int *create_mmodM(int m, int M, int distances); 

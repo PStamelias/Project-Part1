@@ -120,15 +120,13 @@ int main(int argc,char** argv) {
 
 
 	while(1){
-		FILE* q=fopen(query_file,"r");
 		clock_t t; 	
 		t = clock(); 
-		range_search();
+		range_search(query_file,bucket_ptr_table);
 		t = clock() - t; 
 		double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds 
 		fprintf(out,"Execution time of range_search=%f",time_taken);
 		printf("%s\n","Type the name of new query file or type NO if you want to terminate the program");
-		fclose(q);
 		scanf("%s",command);
 		if(!strcmp(command,"NO"))
 			break;

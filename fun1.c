@@ -177,6 +177,105 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 
 
 
-void range_search(){
+void range_search(char* query_file,bucket*** Hash_Tables){
 	
+}
+
+
+
+int manhattan_dist(image_node *image1, image_node *image2, int distances) {  /*Uelw na brw thn apostash Manhattan metajy*/
+	                                                                           /*twn eikonwn image1 kai image2*/
+  int distance = 0;
+  int diff = 0;
+
+	for (int i = 0; i < distances; i++) {
+		/*gia kaue zeygari syntetagmenwn twn image1, image2 briskw thn*/
+		/*apolyth timh ths diaforas toy kai thn prosuetw sto distances*/
+		/*Apostash_Manhattan(image1,image2) = Auroisma_1<=i<=distances(|image1_xi-image2_yi|)*/
+
+	  diff = (image1 -> pixels[i]) - (image2 -> pixels[i]);
+
+		if(diff < 0) diff = diff*(-1); /*an to diff htan arnhtiko,to pollaplasiazw me -1 gia na parw thn apolyth timh toy*/
+
+		distance = distance + diff;
+
+	}
+
+  return distance;
+
+}
+
+
+int brute_force(image_node* image_table, int i, int number_of_images, int distances) {  /*se ena plhuos number_of_images eikonwn briskw ton */
+                                                                                  /*plhsiestero geitona sthn eikona yp'arithmon i kai */
+                                                                                  /*epistrefw thn apostash ths eikonas i apo ton*/
+																																				          /*plhsiestero geitona ths*/
+	int min_dist = -1;  /*to min_dist ua periexei thn apostash metajy ths eikonas i kai toy plhsiesteroy geitona ths eikonas i*/
+  int new_dist = 0;
+
+  for (int j = 0; j < number_of_images; ++j) {
+
+		if (j != i) { /*an ejetazw diaforetikh eikona apo thn i (gia na mhn brw thn apostash ths eikonas i me ton eayto ths)*/
+
+			if (min_dist == -1) /*an einai h prwth eikona poy ejetazw, anagkastika to min_dist ua parei thn Apostash_Manhattan metajy ths i kai ths j*/
+				min_dist = manhattan_dist(&image_table[i], &image_table[j], distances);
+
+			else { /*an den einai h prwth eikona poy ejetazw*/
+				new_dist = manhattan_dist(&image_table[i], &image_table[j], distances);
+				if(new_dist < min_dist)  min_dist = new_dist;
+			}
+
+  	}
+
+  }
+
+	return min_dist;
+
+}
+
+
+int power(int number, int exponent) {  /*ypologizw to number^exponent*/
+
+	if(exponent == 0) return 1;
+
+	int result = 1;
+
+	for(int i = 0; i < exponent; i++)
+		result = result*number;
+
+	return result;
+}
+
+
+int mod(int a, int b) {   /*to b ua einai panta dynamh toy 2(kai uetikos ariumos) kai gia*/
+													/*dynameis toy 2 isxyei oti xmod(2^n) == x&((2^n) - 1)*/
+	int result;
+	int new_b = b - 1;
+
+	result = a&new_b;
+
+	return result;
+
+}
+
+
+int *create_mmodM(int m, int M, int distances) {
+
+	int *m_modM = malloc(distances*sizeof(int));  /*o pinakas m_modM periexei me thn seira ta ejhs stoixeia:*/
+																								/*1,mmodM,(m^2)modM,(m^3)modM,...,(m^(d-1))modM*/
+																								/*Kaue stoixeio mporei na ypologisuei etsi: (m^x)modM = (m*m^(x-1))modM =*/
+																								/*= ((mmodM)*((m^(x-1))modM))modM*/
+  m_modM[0] = 1;
+
+  m_modM[1] = mod(m,M);  //sto m_modM[1] exw to mmodM
+
+	unsigned int product;
+
+	for (int i = 2; i < distances; ++i) {
+			product = (unsigned int)(m_modM[1]*m_modM[i-1]);
+			m_modM[i] = mod((int)product,M);
+	}
+
+	return m_modM;
+
 }
