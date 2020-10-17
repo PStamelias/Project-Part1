@@ -98,7 +98,7 @@ int main(int argc,char** argv) {
 	/*creating L hashtables*/
   FILE *fp;
   FILE* out;
-  out =fopen(output_file,"r");
+  out =fopen(output_file,"a");
   fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
 
 	input_info(fp, &number_of_images, &distances); /*diabasa apo to input_file(diekths fp) toys 4 prwtoys akeraioys*/
@@ -120,12 +120,37 @@ int main(int argc,char** argv) {
 
 
 	while(1){
-		clock_t t; 	
-		t = clock(); 
-		range_search(query_file,bucket_ptr_table);
-		t = clock() - t; 
-		double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds 
-		fprintf(out,"Execution time of range_search=%f",time_taken);
+		FILE* o=fopen(query_file,"r");
+		int magic_num;
+		int img_num;
+		int rows_num;
+		int columns_num;
+		fread(&magic_num,sizeof(int),1,o);
+		magic_num = ((magic_num>>24)&0xff)|((magic_num<<8)&0xff0000)|((magic_num>>8)&0xff00)|((magic_num<<24)&0xff000000);
+		fread(&img_num,sizeof(int),1,o);
+		img_num = ((img_num>>24)&0xff)|((img_num<<8)&0xff0000)|((img_num>>8)&0xff00)|((img_num<<24)&0xff000000);
+		fread(&rows_num,sizeof(int),1,o);
+		rows_num = ((rows_num>>24)&0xff)|((rows_num<<8)&0xff0000)|((rows_num>>8)&0xff00)|((rows_num<<24)&0xff000000);
+		fread(&columns_num,sizeof(int),1,o);
+		columns_num = ((columns_num>>24)&0xff)|((columns_num<<8)&0xff0000)|((columns_num>>8)&0xff00)|((columns_num<<24)&0xff000000);
+		image_node node;
+		node.pixels=malloc(columns_num*rows_num*sizeof(int));
+		for(int i=0;i<img_num;i++){
+			for(int j=0;j<columns_num*rows_num;j++){
+				unsigned char b;
+				fread(&b,sizeof(unsigned char),1,o);
+				int pixel= (int)b; 
+				node.pixels[j]=pixel;
+			}
+			clock_t t; 	
+			t = clock(); 
+			range_search(node,bucket_ptr_table,L,table_size,out);
+			t = clock() - t; 
+			double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds 
+			fprintf(out,"Execution time of range_search=%f",time_taken);
+		}
+		free(node.pixels);
+		fclose(o);
 		printf("%s\n","Type the name of new query file or type NO if you want to terminate the program");
 		scanf("%s",command);
 		if(!strcmp(command,"NO"))
@@ -135,6 +160,7 @@ int main(int argc,char** argv) {
 			strcpy(command,query_file);
 		}
 	}
+	fclose(out);
 	exit_memory(query_file,output_file,input_file,number_of_images,image_table,L,K,s_L_tables,bucket_ptr_table,table_size); /*apeleyuerwnw thn mnhmh*/
 	return 0;
 

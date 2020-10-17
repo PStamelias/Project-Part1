@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <limits.h>
 #include <inttypes.h>
 #include "struct1.h"
 
@@ -177,10 +178,83 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 
 
 
-void range_search(char* query_file,bucket*** Hash_Tables){
-	
+void range_search(image_node k,bucket*** Hash_Tables,int number_of_hash_tables,int table_size,FILE* out){
+	image* im_list=NULL;
+	for(int i=0;i<number_of_hash_tables;i++){
+		int s=compute_g(&k,i);
+		int pos=s%table_size;
+		bucket** start=Hash_Tables[i];
+	}
+	print_list(im_list,out);
 }
 
+void insert_list(image** start,int img_num){
+	image* i=malloc(sizeof(image));
+	i->next=NULL;
+	i->image=img_num;
+	if(*start==NULL)
+		*start=i;
+	else{
+		image* k=start;
+		while(1){
+			if(k->next==NULL){
+				k->next=i;
+				break;
+			}
+			k=k->next;
+		}
+	}
+}
+int search_list(image* start,int img_num){
+	int found=0;
+	image* k=start;
+	while(1){
+		if(k->image==img_num){
+			found=1;
+			break;
+		}
+		k=k->next;
+	}
+	return found;
+}	
+void print_list(image* start,FILE* out){
+	int size=0;
+	image* k=start;
+	image* e=start;
+	while(1){
+		if(start==NULL)
+			break;
+		size++;
+		start=start->next;
+	}
+	int* my_table=malloc(size*sizeof(int));
+	int coun=0;
+	while(1){
+		if(k==NULL)
+			break;
+		my_table[coun++]=k->image;
+		k=k->next;
+	}
+	qsort( my_table, size, sizeof(int), compare );
+	free(my_table);
+	image* g=e->next;
+	while(1){
+		free(e);
+		e=g;
+		if(e==NULL)
+			break;
+		g=g->next;
+	}
+}
+
+int compare( const void* a, const void* b){
+     int int_a = * ( (int*) a );
+     int int_b = * ( (int*) b );
+
+     if ( int_a == int_b ) return 0;
+     else if ( int_a < int_b ) return -1;
+     else return 1;
+}
 
 
 int manhattan_dist(image_node *image1, image_node *image2, int distances) {  /*Uelw na brw thn apostash Manhattan metajy*/
