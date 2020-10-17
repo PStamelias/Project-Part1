@@ -178,12 +178,34 @@ bucket*** Hash_Table_Creation(image_node* image_table,int number_of_hash_tables,
 
 
 
-void range_search(image_node k,bucket*** Hash_Tables,int number_of_hash_tables,int table_size,FILE* out){
+void range_search(image_node k,bucket*** Hash_Tables,int number_of_hash_tables,int table_size,FILE* out,int dist,float R){
 	image* im_list=NULL;
+	int max_search=0;
 	for(int i=0;i<number_of_hash_tables;i++){
-		int s=compute_g(&k,i);
-		int pos=s%table_size;
-		bucket** start=Hash_Tables[i];
+		int g=compute_g(&k,i);
+		int pos=g%table_size;
+		bucket** start=&Hash_Tables[i][pos];
+		bucket* e=*start;
+		while(1){
+			if(e==NULL)
+				break;
+			int g_image=e->g;
+			if(g==g_image){
+				bucket* n=e;
+				if(manhattan_dist(&k,n->image_info,dist)<R){
+					if(search_list(im_list,g_image)==0){
+						if(size_list(im_list)==20000){
+							max_search=1;
+							break;
+						}
+						insert_list(&im_list,g_image);
+					}
+				}
+			}
+			e=e->next;
+		}
+		if(max_search==1)
+			break;
 	}
 	print_list(im_list,out);
 }
@@ -195,7 +217,7 @@ void insert_list(image** start,int img_num){
 	if(*start==NULL)
 		*start=i;
 	else{
-		image* k=start;
+		image* k=*start;
 		while(1){
 			if(k->next==NULL){
 				k->next=i;
@@ -217,15 +239,26 @@ int search_list(image* start,int img_num){
 	}
 	return found;
 }	
-void print_list(image* start,FILE* out){
+int size_list(image* start){
 	int size=0;
-	image* k=start;
-	image* e=start;
 	while(1){
 		if(start==NULL)
 			break;
 		size++;
 		start=start->next;
+	}
+	return size;
+}
+void print_list(image* start,FILE* out){
+	int size=0;
+	image* k=start;
+	image* t=start;
+	image* e=start;
+	while(1){
+		if(t==NULL)
+			break;
+		size++;
+		t=t->next;
 	}
 	int* my_table=malloc(size*sizeof(int));
 	int coun=0;
@@ -236,7 +269,11 @@ void print_list(image* start,FILE* out){
 		k=k->next;
 	}
 	qsort( my_table, size, sizeof(int), compare );
+	for(int i=0;i<size;i++)
+		fprintf(out,"image_number_%d\n",my_table[i]);
 	free(my_table);
+	if(e==NULL)
+		return;
 	image* g=e->next;
 	while(1){
 		free(e);
