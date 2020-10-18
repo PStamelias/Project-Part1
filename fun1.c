@@ -24,7 +24,8 @@ image_node* image_creation(FILE* file, int number_of_images, int distances) {
 			my_table[i].pixels[j] = (int)b; /*telos kanw cast to b se integer gia na to apouhkeysw sthn j-osth uesh*/
                                       /*toy pinaka pixels ths sygkekrimenhs eikonas i*/
 		}
-
+		//exw brei ta g1 g2 g3 (L = 3)//OXI   SE JEXVRH SYNARTHSH
+    //topouethsh///OXI
 	return my_table;
 
 }
@@ -95,18 +96,404 @@ void input_info(FILE* file, int* number_of_im, int* sum) { /*me thn input_info d
 }
 
 
+int manhattan_dist(image_node *image1, image_node *image2, int distances) {  /*Uelw na brw thn apostash Manhattan metajy*/
+	                                                                           /*twn eikonwn image1 kai image2*/
+  int distance = 0;
+  int diff = 0;
 
-void exit_memory(char* query_file,char* output,char* input,int number_of_images,image_node* image_table,int L,int K,int*** L_tables){
+	for (int i = 0; i < distances; i++) {
+		/*gia kaue zeygari syntetagmenwn twn image1, image2 briskw thn*/
+		/*apolyth timh ths diaforas toy kai thn prosuetw sto distances*/
+		/*Apostash_Manhattan(image1,image2) = Auroisma_1<=i<=distances(|image1_xi-image2_yi|)*/
+
+	  diff = (image1 -> pixels[i]) - (image2 -> pixels[i]);
+
+		if(diff < 0) diff = diff*(-1); /*an to diff htan arnhtiko,to pollaplasiazw me -1 gia na parw thn apolyth timh toy*/
+
+		distance = distance + diff;
+
+	}
+
+  return distance;
+
+}
+
+
+int brute_force(image_node* image_table, int i, int number_of_images, int distances) {  /*se ena plhuos number_of_images eikonwn briskw ton */
+                                                                                  /*plhsiestero geitona sthn eikona yp'arithmon i kai */
+                                                                                  /*epistrefw thn apostash ths eikonas i apo ton*/
+																																				          /*plhsiestero geitona ths*/
+	int min_dist = -1;  /*to min_dist ua periexei thn apostash metajy ths eikonas i kai toy plhsiesteroy geitona ths eikonas i*/
+  int new_dist = 0;
+
+  for (int j = 0; j < number_of_images; ++j) {
+
+		if (j != i) { /*an ejetazw diaforetikh eikona apo thn i (gia na mhn brw thn apostash ths eikonas i me ton eayto ths)*/
+
+			if (min_dist == -1) /*an einai h prwth eikona poy ejetazw, anagkastika to min_dist ua parei thn Apostash_Manhattan metajy ths i kai ths j*/
+				min_dist = manhattan_dist(&image_table[i], &image_table[j], distances);
+
+			else { /*an den einai h prwth eikona poy ejetazw*/
+				new_dist = manhattan_dist(&image_table[i], &image_table[j], distances);
+				if(new_dist < min_dist)  min_dist = new_dist;
+			}
+
+  	}
+
+  }
+
+	return min_dist;
+
+}
+
+
+int power(int number, int exponent) {  /*ypologizw to number^exponent*/
+
+  if(exponent == 0) return 1;
+
+  int result = 1;
+
+  for (int i = 0; i < exponent; i++)
+  	result = result*number;
+
+	return result;
+}
+
+
+int mod(int a, int b) {   /*to b ua einai panta dynamh toy 2(kai uetikos ariumos) kai gia*/
+													/*dynameis toy 2 isxyei oti xmod(2^n) == x&((2^n) - 1)*/
+	int result;
+	int new_b = b - 1;
+
+	result = a&new_b;
+
+	return result;
+
+}
+
+
+int *create_mmodM(int m, int M, int distances) {
+
+	int *m_modM = malloc(distances*sizeof(int));  /*o pinakas m_modM periexei me thn seira ta ejhs stoixeia:*/
+																								/*1,mmodM,(m^2)modM,(m^3)modM,...,(m^(d-1))modM*/
+																								/*Kaue stoixeio mporei na ypologisuei etsi: (m^x)modM = (m*m^(x-1))modM =*/
+																								/*= ((mmodM)*((m^(x-1))modM))modM*/
+  m_modM[0] = 1;
+
+  m_modM[1] = mod(m,M);  //sto m_modM[1] exw to mmodM
+
+	unsigned int product;
+
+	for (int i = 2; i < distances; ++i) {
+			product = (unsigned int)(m_modM[1]*m_modM[i-1]);
+			m_modM[i] = mod((int)product,M);
+	}
+
+	return m_modM;
+
+}
+
+
+
+int compute_h(image_node *image, int *m_modM, int distances, int* s_array, int w, int M) { /*briskw thn akeraia timh mias*/
+																																																		/*sygkekrimenhs h gia mia sygkekrimenh*/
+																																																		/*eikona*//*synarthsh compute_h*/
+  int result = 0;                                                                                   /*ousiastika ypologizei to h(x) = */
+  int temp;                                                                                         /*= (a(d-1)+m*a(d-2)+...+m^(d-1)*a(0))modM*/
+	unsigned int product;                                                               /*s_array = pinakas me ta s mias sygkekrimenhs h*/
+  int ai;  /*ai = floor((pi-si)/w)*/
+	int xi, si;
+
+	for (int i = 0; i < distances; ++i) {
+		xi = image -> pixels[(distances - 1) - i];
+		si = s_array[(distances - 1) - i];
+		if((xi - si) >= 0) ai = (xi - si)/w;
+		else {
+			if((si - xi)%w != 0) ai = ((xi - si)/w) - 1; /*an exw (-5)/2 ,(-5)/2 = -2 egw omws uelw to floor dhladh to floor(-2,5) = -3*/
+			else ai = (xi - si)/w;  /*an diairoyntai akribws tote kanena problhma*/
+		}
+
+		temp = mod(ai, M);
+
+		if(i != 0) {
+			product = (unsigned int)(temp*m_modM[i]);
+			temp = mod((int)product,M);
+	  }
+		result = result + temp;
+	}
+
+	result = mod(result, M);
+
+	return result;
+
+}
+
+
+
+unsigned int compute_g(image_node *image, int table, int K, int *m_modM, int distances, int*** s_L_tables, int w, int M) {
+	                                                                                  /*briskw thn akeraia timh mias sygkekrimenhs g*/
+
+  unsigned int result = 0;
+
+  int *h_table_of_g = malloc(K*sizeof(int)); /*o pinakas aytos ua periexei ths h1(x),h2(x),...,hk(x) gia na sxhmatistei*/
+																						 /*h synarthsh g(x) (= [h1(x)|h2(x)|...|hk(x)] ) poy antistoixei se enan sygkekrimeno*/
+																						 /*pinaka katakermatismoy gia mia sygkekrimenh eikona x (=image)*/
+	for (int i = 0; i < K; i++)
+	{	h_table_of_g[i] = compute_h(image, m_modM, distances, s_L_tables[table][i], w, M);
+		//printf("h%d = %d  ", i+1, h_table_of_g[i]);
+  }
+
+  /*twra kanoyme to concatenation gia na dhmioyrghsoyme thn akeraia timh toy g:*/
+	int num_bits = 32/K; /*apo kaue h ua paroyme ta num_bits prwta bits kai ayta ua kanoyme*/
+											 /*concatenation me tis ypoloipes h*/
+  unsigned int keep = (unsigned int)(power(2, num_bits) - 1); /*me to keep ua krataw akribws ta bits poy me endiaferoyn*/
+	unsigned int temp = 0;															       /*to keep einai mia seira apo num_bits assoys */
+
+	for (int i = 0; i < K; i++) {
+		temp = (unsigned int)h_table_of_g[i];
+		temp = temp&keep; //krataw apo thn hi ta prwta num_bits poy me endiaferoyn
+		result = (result << num_bits)|temp;
+	}
+
+	free(h_table_of_g);
+
+	return result; //epistrefoyme to g
+
+}
+
+
+
+bucket*** Hash_Table_Creation(image_node* image_table, int number_of_hash_tables, int number_of_images, int K, int *m_modM, int distances, int*** s_L_tables, int w, int M, int* table_siz) {
+/*kataskeyazw toys L pinakes ths LSH kai topouetw sta buckets toys tis eikones apo to Dataset moy*/
+	bucket*** bucket_ptrs = malloc(number_of_hash_tables*sizeof(bucket**));    /*ousiastika number_of_hash_tables = L*/
+  /*o bucket_ptrs deixnei stoys ejwterikoys pinakes katakermatismoy*/
+	int choice = rand()%2;
+	int table_size; /*to megeuos twn ejwterikwn pinakwn katakermatismoy*/
+
+	if(choice == 0)	table_size = number_of_images/8;
+	else	table_size = number_of_images/16;
+
+	for(int i = 0; i < number_of_hash_tables; i++)
+		bucket_ptrs[i] = malloc(table_size*sizeof(bucket*)); /*desmeyw mnhmh gia kaue ejwteriko pinaka katakermatismoy*/
+
+	for(int i = 0; i < number_of_hash_tables; i++)
+		for(int j = 0; j < table_size; j++)
+			bucket_ptrs[i][j] = NULL;
+
+	for(int i = 0; i < number_of_hash_tables; i++) /*gia kaue ejwteriko pinaka katakermatismoy*/
+		for(int j = 0; j < number_of_images; j++) {  /*gia kaue eikona*/
+
+			bucket* p = malloc(sizeof(bucket));
+			unsigned int g = compute_g(&image_table[j], i, K, m_modM, distances, s_L_tables, w, M); /*h eikona image_table[j] gia ton yp'arithmon*/
+			                                                     /*i pinaka katakermatismoy dinei thn timh g (dhladh gi(x) = g opoy x einai h eikona)*/
+			p->g = g;
+			p->next = NULL;
+			p->image_info = &image_table[j];
+			int pos = g%table_size;  /*se poia uesh toy ejwterikoy pinaka kat/smoy yp'arithmon i ua mpei*/
+
+			bucket** node = &bucket_ptrs[i][pos];     /*to bucket poy deixnei sthn eikona image_table[j]*/
+
+			if(*node == NULL)        /*afoy brhka se poia uesh ston ejwteriko pinaka kat/smoy yp'arithmon i*/
+				*node = p;             /*antistoixei to neo moy bucket, paw kai sarwnw thn lista apo buckets*/
+			else {                   /*poy deixnei ayth h uesh kai topouetw to neo bucket sto telos ths listas*/
+				bucket* temp = *node;
+				while(1) {
+					if(temp->next == NULL) {
+						temp->next = p;
+						break;
+					}
+					temp = temp->next;
+				}
+			}
+
+
+		}
+
+	*table_siz = table_size;
+	return bucket_ptrs;
+
+
+}
+
+
+
+void range_search(image_node query, bucket*** Hash_Tables, int number_of_hash_tables, int table_size, FILE* out, int dist, float R, int K, int *m_modM, int in_distances, int*** s_L_tables, int w, int M) {
+//k=query    e=temp
+	image* im_list = NULL; /*ua exw mia lista me ta image_numbers geitonwn (me to poly R apostash apo to query)poy exw brei mexri twra*/
+	int max_search = 0;
+
+	for(int i = 0; i < number_of_hash_tables; i++) {  /*gia kaue pinaka katakermatismoy*/
+
+		unsigned int g = compute_g(&query, i, K, m_modM, in_distances, s_L_tables, w, M); /*bres to antistoixo g toy query gia ton i pinaka*/
+		int pos = g%table_size;  /*bres se poio bucket toy pinaka paei to sygkekrimeno query*/
+		bucket** start = &Hash_Tables[i][pos]; /*phgaine kai sarwse thn lista poy deixnei h sygkekrimenh*/
+		bucket* temp = *start;                    /*uesh toy pinaka sthn opoia antistoixei to query*/
+    ////
+		while(1) {
+
+			if(temp == NULL)
+				break;
+			unsigned int g_image = temp->g;
+			if(g == g_image) {  /*an brhka sthn lista eikona me to idio g*/
+				bucket* n = temp;
+				if(manhattan_dist(&query, n->image_info, dist) < R) {
+					if(search_list(im_list, n->image_info->image_number) == 0) {
+						if(size_list(im_list) == 20000) {
+							max_search = 1;
+							break;
+						}
+						insert_list(&im_list, n->image_info->image_number);
+					}
+				}
+			}
+			temp = temp->next;
+
+		}
+    ////
+		if(max_search == 1)
+			break;
+
+	}
+
+	print_list(im_list, out);
+
+
+}
+
+
+
+int compare( const void* a, const void* b){
+     int int_a = * ( (int*) a );
+     int int_b = * ( (int*) b );
+
+     if ( int_a == int_b ) return 0;
+     else if ( int_a < int_b ) return -1;
+     else return 1;
+}
+
+
+
+void insert_list(image** start,int img_num){
+	image* i=malloc(sizeof(image));
+	i->next=NULL;
+	i->image=img_num;
+	if(*start==NULL)
+		*start=i;
+	else{
+		image* k=*start;
+		while(1){
+			if(k->next==NULL){
+				k->next=i;
+				break;
+			}
+			k=k->next;
+		}
+	}
+}
+
+
+int search_list(image* start,int img_num) {
+	int found=0;
+	image* k=start;
+	while(1) {
+
+		 if(k != NULL) {
+			 if(k->image == img_num) {
+				 found=1;
+ 				 break;
+			 }
+			 k=k->next;
+		 }
+		 else break;
+
+	}
+	return found;
+
+}
+
+
+
+int size_list(image* start){
+	int size=0;
+	while(1){
+		if(start==NULL)
+			break;
+		size++;
+		start=start->next;
+	}
+	return size;
+}
+
+
+
+void print_list(image* start,FILE* out){
+	int size=0;
+	image* k=start;
+	image* t=start;
+	image* e=start;
+	while(1){
+		if(t==NULL)
+			break;
+		size++;
+		t=t->next;
+	}
+	int* my_table=malloc(size*sizeof(int));
+	int coun=0;
+	while(1){
+		if(k==NULL)
+			break;
+		my_table[coun++]=k->image;
+		k=k->next;
+	}
+	qsort( my_table, size, sizeof(int), compare );
+	for(int i=0;i<size;i++)
+		fprintf(out,"image_number_%d\n",my_table[i]);
+	free(my_table);
+	if(e==NULL)
+		return;
+	image* g=e->next;
+	while(1){
+		free(e);
+		e=g;
+		if(e==NULL)
+			break;
+		g=g->next;
+	}
+}
+
+
+void exit_memory(char* query_file, char* output, char* input, int number_of_images, image_node* image_table, int L, int K, int*** L_tables, bucket*** bucket_ptr, int table_size) {
+
 	free(output);
 	free(query_file);
 	free(input);
-	for(int i=0;i<number_of_images;i++)
+
+	for(int i = 0; i < L; i++) {
+		for(int k = 0; k < table_size; k++) {
+			bucket* p = bucket_ptr[i][k];
+			if(p == NULL)
+				continue;
+			bucket* i = p->next;
+			while(1) {
+				free(p);
+				p = i;
+				if(p == NULL)
+					break;
+				i = i->next;
+			}
+		}
+		free(bucket_ptr[i]);
+	}
+	free(bucket_ptr);
+
+	for(int i = 0; i < number_of_images; i++)
 		free(image_table[i].pixels);
 	free(image_table);
-	for(int i=0;i<L;i++){
-		for(int a=0;a<K;a++)
+	for(int i = 0; i < L; i++) {
+		for(int a = 0; a < K; a++)
 			free(L_tables[i][a]);
 		free(L_tables[i]);
 	}
 	free(L_tables);
+
 }
