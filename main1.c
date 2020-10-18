@@ -171,7 +171,7 @@ while(1) {
   //printf("qr_number_of_im=%d qr_dist=%d\n", qr_number_of_im, qr_dist);//to query_file exei 10000 eikones me diastaseis 784
 	node.pixels = malloc(qr_dist*sizeof(int));
 
-	for(int i = 0; i < 100; i++) { /*gia kaue eikona apo to query_file*///anti gia 100 eixa qr_number_of_im
+	for(int i = 0; i < qr_number_of_im; i++) { /*gia kaue eikona apo to query_file*///anti gia 100 eixa qr_number_of_im
 
 		for(int j = 0; j < qr_dist; j++) {  /*bale arxika ston pinaka pixels toy node ta pixels ths*/
 

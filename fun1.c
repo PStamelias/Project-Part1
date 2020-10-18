@@ -355,7 +355,7 @@ void range_search(image_node query, bucket*** Hash_Tables, int number_of_hash_ta
 
 	}
 
-	print_list(im_list, out);
+	if(im_list != NULL) print_list(im_list, out);
 
 
 }
