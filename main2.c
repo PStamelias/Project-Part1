@@ -1,14 +1,19 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include "struct2.h"
 #define MAX_LENGTH_WORD 500
 int main(int argc,char** argv){
 	int arguments_number=argc-1;
 	int K,M,N;
 	double R;
 	int probes;
+	int number_of_images;
+	image_node* image_table;
 	char* input_file;
 	char* query_file;
+	int distances;
+	FILE *fp;
 	char* output_file;
 	if(arguments_number==16){
 		int coun1=0;
@@ -90,8 +95,9 @@ int main(int argc,char** argv){
 			R=1.0;
 		}
 	}
-	free(query_file);
-	free(input_file);
-	free(output_file);
+  	fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
+	input_info(fp, &number_of_images, &distances);
+	image_table = image_creation(fp, number_of_images, distances);
+	exit_memory(query_file,input_file,output_file,fp,image_table,number_of_images);
 	return 0;
 }
