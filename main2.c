@@ -1,6 +1,7 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include "struct2.h"
 #define MAX_LENGTH_WORD 500
 int main(int argc,char** argv){
@@ -98,6 +99,7 @@ int main(int argc,char** argv){
   	fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
 	input_info(fp, &number_of_images, &distances);
 	image_table = image_creation(fp, number_of_images, distances);
+	srand(time(NULL));
 	exit_memory(query_file,input_file,output_file,fp,image_table,number_of_images);
 	return 0;
 }
