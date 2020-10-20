@@ -175,7 +175,7 @@ while(1) {
   int *appr_NN = malloc(N*sizeof(int)); //periexei ta image_numbers twn plhsiesterwn geitonwn
 	int *dist_NN = malloc(N*sizeof(int)); //periexei ta distances twn plhsiesterwn geitonwn apo to kaue query
 
-	int *exact_NN = malloc(N*sizeof(int));
+	int *exct_NN = malloc(N*sizeof(int));
 	int *exdist_NN = malloc(N*sizeof(int));
 
 	for(int i = 0; i < 1; i++) { /*gia kaue eikona apo to query_file*///anti gia 1 eixa qr_number_of_im
@@ -199,7 +199,7 @@ while(1) {
 		for (int j = 0; j < N; j++) {
 			appr_NN[j] = -1;
 			dist_NN[j] = -1;
-			exact_NN[j] = -1;
+			exct_NN[j] = -1;
 			exdist_NN[j] = -1;
 		}
 
@@ -211,7 +211,7 @@ while(1) {
 
 		clock_t t1;
 		t1 = clock();
-    exact_NN(node, image_table, number_of_images, distances, exact_NN, exdist_NN, N);
+    exact_NN(node, image_table, number_of_images, distances, exct_NN, exdist_NN, N);
 		t1 = clock() - t1;
 		double time_taken1 = ((double)t1)/CLOCKS_PER_SEC;
 
@@ -232,7 +232,7 @@ while(1) {
   free(g_valuesofQuery);
 	free(appr_NN);
 	free(dist_NN);
-	free(exact_NN);
+	free(exct_NN);
 	free(exdist_NN);
 
 	free(node.pixels);
@@ -240,7 +240,7 @@ while(1) {
 	fclose(out);
 
 	printf("%s\n","Type the name of new query file and new output file or type NO if you want to terminate the program");
-	scanf("%s",command);
+	scanf("%s\n",command);
 
 	if(!strcmp(command,"NO"))
 		break;
