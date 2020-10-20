@@ -267,11 +267,13 @@ bucket*** Hash_Table_Creation(image_node* image_table, int number_of_hash_tables
 /*kataskeyazw toys L pinakes ths LSH kai topouetw sta buckets toys tis eikones apo to Dataset moy*/
 	bucket*** bucket_ptrs = malloc(number_of_hash_tables*sizeof(bucket**));    /*ousiastika number_of_hash_tables = L*/
   /*o bucket_ptrs deixnei stoys ejwterikoys pinakes katakermatismoy*/
-	int choice = rand()%2;
+	//int choice = rand()%2;
 	int table_size; /*to megeuos twn ejwterikwn pinakwn katakermatismoy*/
 
-	if(choice == 0)	table_size = number_of_images/8;
-	else	table_size = number_of_images/16;
+	//if(choice == 0)
+	table_size = number_of_images/8;
+	//else
+	//table_size = number_of_images/16;
 
 	for(int i = 0; i < number_of_hash_tables; i++)
 		bucket_ptrs[i] = malloc(table_size*sizeof(bucket*)); /*desmeyw mnhmh gia kaue ejwteriko pinaka katakermatismoy*/
@@ -317,18 +319,144 @@ bucket*** Hash_Table_Creation(image_node* image_table, int number_of_hash_tables
 
 
 
-void range_search(image_node query, bucket*** Hash_Tables, int number_of_hash_tables, int table_size, FILE* out, int dist, float R, int K, int *m_modM, int in_distances, int*** s_L_tables, int w, int M) {
+
+void approximateNN(image_node query, unsigned int *g_valuesofQuery, int N, int L, bucket*** Hash_Tables, int table_size, int distances, int *appr_NN, int *dist_NN) {
+//oles oi ueseis twn appr_NN kai dist_NN ua exoyn arxika -1
+  unsigned int g;
+	int pos;
+	unsigned int g_temp; /*ua krataei ta g twn buckets poy diabazw*/
+	int new_appr; //neos ypochfios plhsiesteros geitonas
+	int new_dist; //apostash toy neoy ypochfioy plhsiesteroy geitona
+	int check = 0; //an check == 1 shmainei oti eimai se geitona poy exw hdh balei ston pinaka appr_NN
+								 //an check == 0 shmainei oti eimai se geitona poy den exw balei ston appr_NN
+///////////
+	for (int i = 0; i < L; i++) { //gia kaue pinaka katakermatismoy
+
+		g = g_valuesofQuery[i]; //pairnw thn timh g toy query gia ton i-osto pinaka katakermatismoy
+		pos = g%table_size; //bres se poio bucket toy pinaka i paei to sygkekrimeno query
+
+		bucket *temp = Hash_Tables[i][pos]; /*ua diatrejw thn lista apo buckets poy deixnei h sygkekrimenh uesh pos*/
+
+		while(temp != NULL) /*an deixnei se kapoio bucket h uesh pos/diatrexw thn lista apo buckets*/
+		{
+			g_temp = temp -> g; //pare to g toy bucket
+			if(g == g_temp) /*an exei idio g me ayto toy query mas*/
+			{
+				new_appr = temp -> image_info -> image_number;
+				new_dist = manhattan_dist(&query, temp -> image_info, distances);
+				check = 0;
+
+				for (int j = 0; j < N; j++) {
+					if(appr_NN[j] == -1)
+						break;
+					if(appr_NN[j] == new_appr)
+					{ check = 1;
+						break;
+					}
+				}/////---|
+
+				if(check != 1) //an o geitonas poy ejetazw den exei hdh mpei ston appr_NN
+				{
+				  int keep = -1; //to keep ua krataei thn uesh sthn opoia brhka enan geitona me megalyterh apostash apo ton neo geitona
+
+					for (int j = 0; j < N; j++) {
+						if(dist_NN[j] == -1) /*an den yparxei kapoios geitonas se aythn thn uesh j toy appr_NN*/
+						{ dist_NN[j] = new_dist;
+							appr_NN[j] = new_appr;
+							break;
+						}
+						if(new_dist < dist_NN[j])
+						{	keep = j;
+							break;
+						}
+					}////////----|
+
+					if(keep != -1) /*an brhka oti kapoios geitonas poy exw hdh brei exei megalyterh apostash apo ton neo,tote ton antikauistw me ton neo*/
+					{
+						for (int j = N-1; j >= keep; j--) {
+							if(j == keep)
+							{	dist_NN[j] = new_dist;
+								appr_NN[j] = new_appr;
+								break;
+							}
+							dist_NN[j] = dist_NN[j-1];
+							appr_NN[j] = appr_NN[j-1];
+						}
+					}///////----|
+
+			 }
+			}
+			temp = temp -> next;
+
+		}
+
+	}
+///////////
+
+}
+
+
+
+
+
+void exact_NN(image_node query, image_node* image_table, int number_of_images, int distances, int *exact_NN, int *dist_NN, int N) { /*ypologizei akribws toys N plhsiesteroys geitones*/
+//oles oi ueseis twn exact_NN kai dist_NN ua exoyn arxika -1
+	int new_exNN;
+	int new_dist;
+	int keep;
+
+	for (int i = 0; i < number_of_images; i++) {
+
+		new_exNN = image_table[i].image_number;
+    new_dist = manhattan_dist(&query, &image_table[i], distances);
+
+		keep = -1;
+		for (int j = 0; j < N; j++) {
+			if(dist_NN[j] == -1)
+			{ dist_NN[j] = new_dist;
+				exact_NN[j] = new_exNN;
+				break;
+			}
+			if(new_dist < dist_NN[j])
+			{ keep = j;
+				break;
+			}
+		}////---|
+
+		if(keep != -1)
+		{
+			for (int j = N-1; j >= keep; j--) {
+				if(j == keep)
+				{	dist_NN[j] = new_dist;
+					exact_NN[j] = new_exNN;
+					break;
+				}
+				dist_NN[j] = dist_NN[j-1];
+			  exact_NN[j] = exact_NN[j-1];
+			}////---|
+		}
+	}
+
+
+}
+
+
+
+
+
+void range_search(image_node query, unsigned int *g_valuesofQuery, bucket*** Hash_Tables, int number_of_hash_tables, int table_size, FILE* out, int dist, float R) {
 //k=query    e=temp
 	image* im_list = NULL; /*ua exw mia lista me ta image_numbers geitonwn (me to poly R apostash apo to query)poy exw brei mexri twra*/
 	int max_search = 0;
 
 	for(int i = 0; i < number_of_hash_tables; i++) {  /*gia kaue pinaka katakermatismoy*/
 
-		unsigned int g = compute_g(&query, i, K, m_modM, in_distances, s_L_tables, w, M); /*bres to antistoixo g toy query gia ton i pinaka*/
+		unsigned int g = g_valuesofQuery[i]; /*bres to antistoixo g toy query gia ton i pinaka*/
 		int pos = g%table_size;  /*bres se poio bucket toy pinaka paei to sygkekrimeno query*/
 		bucket** start = &Hash_Tables[i][pos]; /*phgaine kai sarwse thn lista poy deixnei h sygkekrimenh*/
 		bucket* temp = *start;                    /*uesh toy pinaka sthn opoia antistoixei to query*/
     ////
+		//printf("in function g%d = %u:\n", i+1,g);
 		while(1) {
 
 			if(temp == NULL)
@@ -337,6 +465,7 @@ void range_search(image_node query, bucket*** Hash_Tables, int number_of_hash_ta
 			if(g == g_image) {  /*an brhka sthn lista eikona me to idio g*/
 				bucket* n = temp;
 				if(manhattan_dist(&query, n->image_info, dist) < R) {
+					//printf("manhattan_dist=%d with image = %d\n", manhattan_dist(&query, n->image_info, dist),n->image_info->image_number);
 					if(search_list(im_list, n->image_info->image_number) == 0) {
 						if(size_list(im_list) == 20000) {
 							max_search = 1;

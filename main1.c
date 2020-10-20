@@ -60,7 +60,7 @@ int main(int argc,char** argv) {
 			 K = 4;                   /*sta K,L,N,R dinontai default times*/
 			 L = 5;
 			 N = 1;
-			 R = 1.0;
+			 R = 10000;
 		 }
 
 
@@ -89,7 +89,7 @@ int main(int argc,char** argv) {
 			 K = 4;                   /*K,L,N,R dinontai default times*/
 			 L = 5;
 			 N = 1;
-			 R = 1.0;
+			 R = 10000;
 		 } else {    /*alliws synexise kanonika kai pare apo ton xrhsth kai tis times twn N kai R*/
 			 printf("Give parameter N:");
 			 scanf("%d",&N);
@@ -153,8 +153,7 @@ int main(int argc,char** argv) {
   /*kataskeyasame toys L ejwterikoys pinakes katakermatismoy*/
 ////////////////////////////////////////////////////////////
 
-	FILE* out;
-  out =fopen(output_file,"a");
+	//FILE* out = fopen(output_file,"a");
 
 	char command[MAX_LENGTH_WORD];
 
@@ -162,6 +161,7 @@ int main(int argc,char** argv) {
 while(1) {
 
 	FILE *fp_qr = fopen(query_file,"r");
+  FILE* out = fopen(output_file,"a");
 
 	int qr_number_of_im;
 	int qr_dist;
@@ -170,9 +170,18 @@ while(1) {
   input_info(fp_qr, &qr_number_of_im, &qr_dist);
   //printf("qr_number_of_im=%d qr_dist=%d\n", qr_number_of_im, qr_dist);//to query_file exei 10000 eikones me diastaseis 784
 	node.pixels = malloc(qr_dist*sizeof(int));
+	unsigned int *g_valuesofQuery = malloc(L*sizeof(unsigned int));
 
-	for(int i = 0; i < qr_number_of_im; i++) { /*gia kaue eikona apo to query_file*///anti gia 100 eixa qr_number_of_im
-		fprintf(out,"Query:%d\n",i);
+  int *appr_NN = malloc(N*sizeof(int)); //periexei ta image_numbers twn plhsiesterwn geitonwn
+	int *dist_NN = malloc(N*sizeof(int)); //periexei ta distances twn plhsiesterwn geitonwn apo to kaue query
+
+	int *exact_NN = malloc(N*sizeof(int));
+	int *exdist_NN = malloc(N*sizeof(int));
+
+	for(int i = 0; i < 1; i++) { /*gia kaue eikona apo to query_file*///anti gia 1 eixa qr_number_of_im
+
+		fprintf(out,"Query: %d\n",i);
+
 		for(int j = 0; j < qr_dist; j++) {  /*bale arxika ston pinaka pixels toy node ta pixels ths*/
 
 			unsigned char b;
@@ -181,22 +190,56 @@ while(1) {
 			node.pixels[j] = pixel;
 
 		}
-		fprintf(out,"%s\n","R-near neighbors:");
+
+		/*gia to query i na brw ta g toy gia toys L pinakes katakermatismoy kai na ta apouhkeysw se enan pinaka*/
+		for (int j = 0; j < L; j++)  /*ston g_valuesofQuery apouhkeysa tis g times toy query i*/
+		 {	g_valuesofQuery[j] = compute_g(&node, j, K, m_modM, distances, s_L_tables, w, M);
+		 printf("%u\n", g_valuesofQuery[j]); }
+
+		for (int j = 0; j < N; j++) {
+			appr_NN[j] = -1;
+			dist_NN[j] = -1;
+			exact_NN[j] = -1;
+			exdist_NN[j] = -1;
+		}
 
 		clock_t t;
 		t = clock();
-		range_search(node, bucket_ptr_table, L, table_size, out, qr_dist, R, K, m_modM, distances, s_L_tables, w, M);
+    approximateNN(node, g_valuesofQuery, N, L, bucket_ptr_table, table_size, distances, appr_NN, dist_NN);
 		t = clock() - t;
-
 		double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
-		fprintf(out,"Execution time of range_search=%f  sec\n",time_taken);
+
+		clock_t t1;
+		t1 = clock();
+    exact_NN(node, image_table, number_of_images, distances, exact_NN, exdist_NN, N);
+		t1 = clock() - t1;
+		double time_taken1 = ((double)t1)/CLOCKS_PER_SEC;
+
+		for (int j = 0; j < N; j++) {
+			fprintf(out,"Nearest neighbor-%d: %d\n",j+1,appr_NN[j]);
+			fprintf(out,"distanceLSH: %d\n",dist_NN[j]);
+			fprintf(out,"distanceTrue: %d\n",exdist_NN[j]);
+		}
+		fprintf(out,"tLSH: %f\n",time_taken);
+		fprintf(out,"tTrue: %f\n",time_taken1);
+
+		fprintf(out,"%s\n","R-near neighbors:");
+		range_search(node, g_valuesofQuery, bucket_ptr_table, L, table_size, out, qr_dist, R);
+
 
 	}
 
+  free(g_valuesofQuery);
+	free(appr_NN);
+	free(dist_NN);
+	free(exact_NN);
+	free(exdist_NN);
+
 	free(node.pixels);
 	fclose(fp_qr);
+	fclose(out);
 
-	printf("%s\n","Type the name of new query file or type NO if you want to terminate the program");
+	printf("%s\n","Type the name of new query file and new output file or type NO if you want to terminate the program");
 	scanf("%s",command);
 
 	if(!strcmp(command,"NO"))
@@ -204,56 +247,18 @@ while(1) {
 	else {
 		memset(query_file, 0, strlen(query_file));
 		strcpy(query_file, command);   /*ua asxolhuw me neo query_file an moy zhthuei apo ton xrhsth*/
+
+    scanf("%s",command);
+		memset(output_file, 0, strlen(output_file));
+		strcpy(output_file, command);
 	}
 
 }
 
 
-fclose(out); //ISWS XREIASTEI ALLAGH TO OUTPUT FILE^^^^^^^^^^66666666666^^^^^^^^^
+//fclose(out); //ISWS XREIASTEI ALLAGH TO OUTPUT FILE^^^^^^^^^^66666666666^^^^^^^^^
 
 
-
-
-
-
-
-/*int souma = 0;
-  for (int i = 0; i < L; i++) {
-		int eswt = 0;
-		printf("pin=%d\n", i+1);
-  	for (int j = 0; j < table_size; j++) {
-
-			bucket *temp = bucket_ptr_table[i][j];
-			while(1)
-			{ if(temp==NULL) break;
-				souma = souma + 1;
-				eswt = eswt + 1;
-				//printf("image_number = %d  g%d = %u  bucket = %d\n", temp -> image_info -> image_number, i+1, temp -> g, j);
-			  temp = temp -> next;
-			}
-
-  	}
-		printf("eswt = %d\n", eswt);
-
-  }
-
-printf("souma = %d\n", souma);*/
-
-
-
-
-	//for (int i = 0; i < number_of_images; i++) { /*gia kaue eikona toy Dataset*/
-
-	//	printf("\n\nimage_number%d:\n", i+1);
-		//for (int j = 0; j < L; j++) { /*gia kaue pinaka katakermatismoy(ston opoio ua topouethsv thn eikona i)*/
-	//		g = compute_g(&image_table[i], j, K, m_modM, distances, s_L_tables, w, M); /*ypologizw to antistoixo g ths eikonas*/
-	/*		if(g < 0) { printf("arnhtiko g\n");break;
-		             }
-      printf("g%d = %u\n", j+1, g);
-		}
-		if(g<0) break;
-
-	}*/
 
 
   free(m_modM);  //PREPEI NA APELEYUERWSW TON m_MODM!!

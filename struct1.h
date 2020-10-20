@@ -35,9 +35,11 @@ int *create_mmodM(int, int, int);
 int compute_h(image_node *, int *, int, int*, int, int);
 unsigned int compute_g(image_node *, int, int, int *, int, int***, int, int);
 
-void range_search(image_node, bucket***, int, int, FILE*, int, float, int, int *, int, int***, int, int);
+void range_search(image_node, unsigned int *, bucket***, int, int, FILE*, int, float);
 int compare( const void*, const void*);
 void insert_list(image**, int);
 int search_list(image*, int);
 int size_list(image*);
 void print_list(image*, FILE*);
+void approximateNN(image_node, unsigned int *, int, int, bucket***, int, int, int *, int *);
+void exact_NN(image_node, image_node*, int, int, int *, int *, int);
