@@ -156,6 +156,7 @@ int main(int argc,char** argv) {
 	//FILE* out = fopen(output_file,"a");
 
 	char command[MAX_LENGTH_WORD];
+	char command2[MAX_LENGTH_WORD];
 
 	//operation
 while(1) {
@@ -240,7 +241,7 @@ while(1) {
 	fclose(out);
 
 	printf("%s\n","Type the name of new query file and new output file or type NO if you want to terminate the program");
-	scanf("%s\n",command);
+	scanf("%s",command);
 
 	if(!strcmp(command,"NO"))
 		break;
@@ -248,9 +249,9 @@ while(1) {
 		memset(query_file, 0, strlen(query_file));
 		strcpy(query_file, command);   /*ua asxolhuw me neo query_file an moy zhthuei apo ton xrhsth*/
 
-    scanf("%s",command);
+    scanf("%s",command2);
 		memset(output_file, 0, strlen(output_file));
-		strcpy(output_file, command);
+		strcpy(output_file, command2);
 	}
 
 }
