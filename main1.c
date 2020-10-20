@@ -179,7 +179,7 @@ while(1) {
 	int *exct_NN = malloc(N*sizeof(int));
 	int *exdist_NN = malloc(N*sizeof(int));
 
-	for(int i = 0; i < 1; i++) { /*gia kaue eikona apo to query_file*///anti gia 1 eixa qr_number_of_im
+	for(int i = 0; i < 1000; i++) { /*gia kaue eikona apo to query_file*///anti gia 1 eixa qr_number_of_im
 
 		fprintf(out,"Query: %d\n",i);
 
@@ -195,7 +195,8 @@ while(1) {
 		/*gia to query i na brw ta g toy gia toys L pinakes katakermatismoy kai na ta apouhkeysw se enan pinaka*/
 		for (int j = 0; j < L; j++)  /*ston g_valuesofQuery apouhkeysa tis g times toy query i*/
 		 {	g_valuesofQuery[j] = compute_g(&node, j, K, m_modM, distances, s_L_tables, w, M);
-		 printf("%u\n", g_valuesofQuery[j]); }
+		    //if(i == 0) printf("%u\n", g_valuesofQuery[j]);
+	   }
 
 		for (int j = 0; j < N; j++) {
 			appr_NN[j] = -1;
