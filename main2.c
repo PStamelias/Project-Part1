@@ -140,7 +140,7 @@ int main(int argc,char** argv) {
 
   int table_size = power(2, K);
 
-  int count = 0;
+  /*int count = 0;
   bucket_hypercube *temp;
   for (int i = 0; i < table_size; i++) {
 		temp = Hash_Table[i];
@@ -158,11 +158,11 @@ int main(int argc,char** argv) {
 		printf("f%d:\n", i+1);
 		print_tree(f_functions[i]);
 		printf("\n");
-	}
+	}*/
 
 
 
-  //NA TSEKARISTOYN:EINAI OK
+  //apeleyuerwnoyme thn mnhmh:
   free(m_modM);
 	free(twopower);
 

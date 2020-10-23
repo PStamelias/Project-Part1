@@ -155,6 +155,24 @@ bucket_hypercube** bucket_hypercube_creation(image_node* image_table, int number
 
 
 
+int hamming(int a, int b) { //briskei thn hamming apostash metajy twn akeraiwn a kai b
+
+	int temp;
+	int res = 0;
+
+	temp = a^b; //aXORb
+
+	while(temp > 0) {
+		int tr = temp&1;
+		res = res + tr;
+		temp = temp >> 1;
+	}
+
+	return res;
+
+}
+
+
 
 void print_tree(f_node *root) {
 	if(root != NULL) {
