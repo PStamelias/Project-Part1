@@ -11,10 +11,11 @@ int main(int argc,char** argv) {
 
 	int K,M,N; //K = d'//M = max plhuos ypochfiwn poy ua elegxthoun
 	double R;  //N plhsiesteroi geitones //R aktina anazhthshs
-
+  //to K kalo einai na einai >=2 kai <31
 	int probes; //max plhuos koryfwn
 	int number_of_images;
 	image_node* image_table;
+	bucket_hypercube** Hash_Table = NULL;
 
 	char* input_file;
 	char* query_file;
@@ -90,13 +91,91 @@ int main(int argc,char** argv) {
 	}
 
 
+  fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
 
-  	fp = fopen(input_file,"r"); /*anoigw to arxeio input_file to opoio periexei to synolo eikonwn moy(Dataset)*/
 	input_info(fp, &number_of_images, &distances);
-	printf("number_of_images=%d distances=%d\n", number_of_images,distances);
 	image_table = image_creation(fp, number_of_images, distances);
+
 	srand(time(NULL));
-	exit_memory_hypercube(query_file,input_file,output_file,fp,image_table,number_of_images);
+
+	int w = 0;
+
+  int deigma = 1000; /*gia na brw to w pairnw ena deigma poy einai oi 1000 prwtes eikones*/
+	int min_dist = 0;
+
+  for (int i = 0; i < deigma; ++i) {
+  	/*min_dist = briskw gia mia eikona thn apostash ths apo ton plhsiestero geitona ths sto deigma*/
+		min_dist = brute_force(image_table, i, deigma, distances);
+		w = w + min_dist;
+
+  }
+
+	w = w/deigma;
+  w = w*4;
+
+	int** s_h_tables = create_g(K, w, distances);  /*o s_h_tables perilambanei ta s kauemias apo tis h synarthseis*/
+
+  fclose(fp);
+
+
+	int m = power(2,27) - 5;  /*m = 2^27 - 5*/
+	int exponent = 32/K;
+	int Mconst = power(2,exponent);  /*M = 2^(32/K)*/
+
+	int *m_modM;/*o pinakas aytos ua exei ola ta (m)modM poy ua xreiastw kata ton ypologismo twn h synarthsevn*/
+
+	m_modM = create_mmodM(m, Mconst, distances);
+
+	int *twopower = malloc(K*sizeof(int)); /*pinakas me dynameis toy 2 poy ua mas xreiastei gia na metatrepoyme to string se int*/
+
+	for (int i = 0; i < K; i++) {
+		if(i == 0) twopower[i] = 1;
+		else
+			twopower[i] = 2*twopower[i-1];
+	}
+
+	f_node **f_functions = create_f_trees(K);
+
+  Hash_Table = bucket_hypercube_creation(image_table, number_of_images, K, f_functions, m_modM, distances, s_h_tables, w, Mconst, twopower);
+
+  int table_size = power(2, K);
+
+  int count = 0;
+  bucket_hypercube *temp;
+  for (int i = 0; i < table_size; i++) {
+		temp = Hash_Table[i];
+		while(temp != NULL)
+		{
+			count++;
+			temp = temp -> next;
+		}
+  }
+	printf("count = %d  number_of_images = %d\n", count, number_of_images);
+
+
+	printf("\nPrint Trees:\n\n");
+	for (int i = 0; i < K; i++) {
+		printf("f%d:\n", i+1);
+		print_tree(f_functions[i]);
+		printf("\n");
+	}
+
+
+
+  //NA TSEKARISTOYN:EINAI OK
+  free(m_modM);
+	free(twopower);
+
+  for (int i = 0; i < K; i++)
+  	free(s_h_tables[i]);
+  free(s_h_tables);
+
+  for (int i = 0; i < K; i++)
+  	free_tree(f_functions[i]);
+	free(f_functions);
+
+
+	exit_memory_hypercube(query_file,input_file,output_file,image_table,number_of_images,Hash_Table,K);
 
 	return 0;
 
