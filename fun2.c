@@ -270,8 +270,7 @@ void approximeteNN_hypercube(image_node query, int pos, bucket_hypercube** Hash_
 
 
 
-void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, int table_size, int distances, FILE* out, int M, float R,int probes) {
-        //int pos=string01_of_image(&node,f_functions, K,m_modM, distances, s_h_tables,w,Mconst,twopower);   //esbhsa to dist
+void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, int table_size, int distances, FILE* out, int M, float R,int probes){
         bucket_hypercube* start = hash_table[pos];
         image* im_list = NULL;
         int done=0;
@@ -291,31 +290,25 @@ void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, i
                 return ;
         }
         int new_distance=M-size_list(im_list);
-        printf("new_distance=%d\n",new_distance);
         int hamming_dist_curr=1;
         int end=0;
         int checked_nodes=0;
-        //int size=power(2,K); ///opou table_size to size
-        int end2=0;
         int num_visited=0;
         while(1){
-                for(int i=0;i<size;i++){
+                for(int i=0;i<table_size;i++){
                         if(i==pos)
                                 continue;
                         num_visited++;
                         if(num_visited==probes){
-                                end2=1;
+                                end=1;
                                 break;
                         }
-                        printf("checked_nodes=%d\n",checked_nodes);
-                        printf("i=%d\n",i);
                         if(hamming(pos,i)==hamming_dist_curr){
-                                printf("%s\n","hamming enter");
                                 bucket_hypercube* e=hash_table[i];
                                 while(1){
                                         if(e==NULL)
                                                 break;
-                                        if(manhattan_dist(&node, e->image, dist) < R) {
+                                        if(manhattan_dist(&node, e->image, distances) < R) {
                                                 insert_list(&im_list, e->image->image_number);
                                                 checked_nodes++;
                                                 if(checked_nodes==new_distance){
@@ -329,13 +322,7 @@ void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, i
                                         break;
                         }
                 }
-                if(end2==1) {
-									print_list(im_list,out);
-								  break;
-								}
-
                 hamming_dist_curr+=1;
-                printf("hamming_dist_curr=%d\n",hamming_dist_curr);
                 if(end==1){
                         print_list(im_list,out);
                         break;
@@ -372,11 +359,19 @@ void free_tree(f_node *node) { //eleyuerwnw ena dendro BST poy perilambanei tis 
 
 
 
-void exit_memory_hypercube(char* query_file,char* input_file,char* output_file,image_node* image_table,int number_of_images, bucket_hypercube** hash_table, int K) {
+void exit_memory_hypercube(char* query_file,char* input_file,char* output_file,image_node* image_table,int number_of_images, bucket_hypercube** hash_table, int K,int* m_modM,int* twopower,int** s_h_tables,f_node** komvos){
 	free(query_file);
 	free(input_file);
 	free(output_file);
+	free(m_modM);
+	free(twopower);
+	for (int i = 0; i < K; i++)
+  		free(s_h_tables[i]);
+  	free(s_h_tables);
 
+  	for (int i = 0; i < K; i++)
+  		free_tree(komvos[i]);
+		free(komvos);
 
 	int size = power(2, K);
 	for(int i = 0; i < size; i++) {
@@ -394,7 +389,6 @@ void exit_memory_hypercube(char* query_file,char* input_file,char* output_file,i
 
 	}
 	free(hash_table);
-
 
 	for(int i = 0; i < number_of_images; i++)
 		free(image_table[i].pixels);

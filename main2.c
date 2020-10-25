@@ -166,7 +166,7 @@ int main(int argc,char** argv) {
 		image_node node;
 		node.pixels = malloc(qr_dist*sizeof(int));
 //////
-		for (int i = 0; i < 100; i++) { //gia kaue eikona apo to query_file  //htan to qr_number_of_im sthn uesh toy 10
+		for (int i = 0; i < qr_number_of_im; i++) { //gia kaue eikona apo to query_file  //htan to qr_number_of_im sthn uesh toy 10
 
 			fprintf(out,"Query: %d\n",i);
 
@@ -215,11 +215,7 @@ int main(int argc,char** argv) {
 			fprintf(out,"tTrue: %f\n",time_taken1);
 
 			fprintf(out,"%s\n","R-near neighbors:");
-      //range_search_cube
-
-			////
-
-
+    		range_search_cube(hash_table,node, pos, table_size, distances, out, M, R,probes);
 
 		}
 
@@ -253,20 +249,10 @@ int main(int argc,char** argv) {
 
 
 
-  //apeleyuerwnoyme thn mnhmh:
-  free(m_modM);
-	free(twopower);
-
-  for (int i = 0; i < K; i++)
-  	free(s_h_tables[i]);
-  free(s_h_tables);
-
-  for (int i = 0; i < K; i++)
-  	free_tree(f_functions[i]);
-	free(f_functions);
 
 
-	exit_memory_hypercube(query_file,input_file,output_file,image_table,number_of_images,Hash_Table,K);
+
+	exit_memory_hypercube(query_file,input_file,output_file,image_table,number_of_images,Hash_Table,K,m_modM,twopower,s_h_tables,f_functions);
 
 	return 0;
 

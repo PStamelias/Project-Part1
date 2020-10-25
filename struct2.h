@@ -21,8 +21,7 @@ bucket_hypercube** bucket_hypercube_creation(image_node*, int, int, f_node **, i
 int hamming(int, int);
 
 void approximeteNN_hypercube(image_node, int, bucket_hypercube**, int, int, int, int, int, int *, int *);
-//menei h dhlwsh ths rangesearch
-
+void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, int table_size, int distances, FILE* out, int M, float R,int probes);
 void print_tree(f_node *);
 void free_tree(f_node *root);
-void exit_memory_hypercube(char*, char*, char*, image_node*, int, bucket_hypercube**, int);
+void exit_memory_hypercube(char* query_file,char* input_file,char* output_file,image_node* image_table,int number_of_images, bucket_hypercube** hash_table, int K,int* m_modM,int* twopower,int** s_h_tables,f_node** komvos);
