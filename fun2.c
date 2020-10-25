@@ -124,11 +124,10 @@ bucket_hypercube** bucket_hypercube_creation(image_node* image_table, int number
 
 	for(int i = 0; i < number_of_images; i++) {
 
-		image_node cur_im = image_table[i];
-		int pos = string01_of_image(&cur_im, f_functions, K, m_modM, distances, s_h_tables, w, Mconst, twopower);
+		int pos = string01_of_image(&image_table[i], f_functions, K, m_modM, distances, s_h_tables, w, Mconst, twopower);
 		bucket_hypercube* newNode = malloc(sizeof(bucket_hypercube)); //ftiaxnw ton neo kombo poy ua balw sto katallhlo bucket
 		newNode->next = NULL;    //toy yperkyboy kai ua deixnei sthn antistoixh eikona image_table[i]
-		newNode->image = &cur_im;
+		newNode->image = &image_table[i];
 
 		bucket_hypercube** start = &node[pos];
 
@@ -171,6 +170,182 @@ int hamming(int a, int b) { //briskei thn hamming apostash metajy twn akeraiwn a
 	return res;
 
 }
+
+
+
+
+
+void approximeteNN_hypercube(image_node query, int pos, bucket_hypercube** Hash_Table, int table_size, int distances, int M, int probes, int N, int *appr_NN, int *dist_NN) {
+//oles oi ueseis twn appr_NN kai dist_NN ua exoyn arxika -1
+
+  bucket_hypercube *temp = Hash_Table[pos];
+  int hammingVar = 1;
+
+  int *probes_array = malloc(probes*sizeof(int)); //o pinakas aytos ua exei toys geitones poy mporei na xreiastei na episkefuoyme
+  //prepei opwsdhpote probes <= table_size-1
+	for (int i = 0; i < probes; ) {  //ua gemisw mia-mia tis ueseis toy pinaka probes_array.Oi prvtes ueseis toy probes_array ua einai
+																	 //ueseis toy pinaka kat/smoy me hamming apostash ish me 1 apo thn pos uesh,afoy ejantlhuoyn oi ueseis me
+																	 //apostash hamming 1 ua akoloyuhsoyn oi ueseis me hamming apostash 2 kok
+		for (int j = 0; j < table_size; j++) { //gia kaue uesh toy table_size
+			if(j != pos) { //(an ayth h uesh den einai h uesh pos)
+				if(hamming(j, pos) == hammingVar) {  //ejetazw an ayth h uesh exei hamming apostash ish me hammingVar(opoy hammingVar einai 1 arxika)
+					probes_array[i] = j;
+					i++;
+					if(i == probes) break;
+				}
+			}
+		}
+		hammingVar++;
+
+	}
+
+  int countM = 0;
+	int countProbes = 0;
+	int newPos; //se periptwsh poy xreiastei na paw se kapoion geitona sto hypercube
+  //...
+	int new_appr;
+	int new_dist;
+  //...
+	while(1) {
+
+    if(temp != NULL) //den eimai se NULL pointer ara ejetazw mia ypochfia eikona
+		{
+			//...  to kommati ayto mporei na allajei sto range_search(to kommati mesa sta //...)
+			new_appr = temp -> image -> image_number;
+			new_dist = manhattan_dist(&query, temp -> image, distances);
+
+			int keep = -1;
+
+			for (int i = 0; i < N; i++) {
+				if(dist_NN[i] == -1)
+				{	dist_NN[i] = new_dist;
+					appr_NN[i] = new_appr;
+					break;
+				}
+				if(new_dist < dist_NN[i])
+				{	keep = i;
+					break;
+				}
+			}
+
+			if(keep != -1)
+			{
+				for (int i = N-1; i >= keep; i--) {
+					if(i == keep)
+					{	dist_NN[i] = new_dist;
+						appr_NN[i] = new_appr;
+						break;
+					}
+					dist_NN[i] = dist_NN[i-1];
+					appr_NN[i] = appr_NN[i-1];
+				}
+			}
+			//...
+
+			countM++;
+			if(countM == M) break;  //ejetasa tis M ypochfies eikones ara bgainw apo to loop
+			temp = temp -> next;
+			continue;
+		}
+		if(countProbes == probes) break; //ejetasa oloys toys ypochfioys geitones ara bgainw apo to loop
+
+		if(temp == NULL) //an to temp einai NULL shmainei oti prepei na paw se allon geitona
+		{ newPos = probes_array[countProbes];
+			temp = Hash_Table[newPos];
+			countProbes++;
+		}
+
+
+	}
+
+
+	free(probes_array);
+
+
+}
+
+
+
+
+
+
+
+void range_search_cube(bucket_hypercube** hash_table,image_node node, int pos, int table_size, int distances, FILE* out, int M, float R,int probes) {
+        //int pos=string01_of_image(&node,f_functions, K,m_modM, distances, s_h_tables,w,Mconst,twopower);   //esbhsa to dist
+        bucket_hypercube* start = hash_table[pos];
+        image* im_list = NULL;
+        int done=0;
+        while(1) {
+                if(start==NULL)
+                        break;
+                if(size_list(im_list)==M) {
+                        done=1;
+                        break;
+                }
+                if(manhattan_dist(&node, start->image, distances) < R)
+                        insert_list(&im_list, start->image->image_number);
+                start=start->next;
+        }
+        if(done==1){
+                print_list(im_list,out);
+                return ;
+        }
+        int new_distance=M-size_list(im_list);
+        printf("new_distance=%d\n",new_distance);
+        int hamming_dist_curr=1;
+        int end=0;
+        int checked_nodes=0;
+        //int size=power(2,K); ///opou table_size to size
+        int end2=0;
+        int num_visited=0;
+        while(1){
+                for(int i=0;i<size;i++){
+                        if(i==pos)
+                                continue;
+                        num_visited++;
+                        if(num_visited==probes){
+                                end2=1;
+                                break;
+                        }
+                        printf("checked_nodes=%d\n",checked_nodes);
+                        printf("i=%d\n",i);
+                        if(hamming(pos,i)==hamming_dist_curr){
+                                printf("%s\n","hamming enter");
+                                bucket_hypercube* e=hash_table[i];
+                                while(1){
+                                        if(e==NULL)
+                                                break;
+                                        if(manhattan_dist(&node, e->image, dist) < R) {
+                                                insert_list(&im_list, e->image->image_number);
+                                                checked_nodes++;
+                                                if(checked_nodes==new_distance){
+                                                        end=1;
+                                                        break;
+                                                }
+                                        }
+                                        e=e->next;
+                                }
+                                if(end==1)
+                                        break;
+                        }
+                }
+                if(end2==1) {
+									print_list(im_list,out);
+								  break;
+								}
+
+                hamming_dist_curr+=1;
+                printf("hamming_dist_curr=%d\n",hamming_dist_curr);
+                if(end==1){
+                        print_list(im_list,out);
+                        break;
+                }
+        }
+}
+
+
+
+
 
 
 

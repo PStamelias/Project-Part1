@@ -112,6 +112,7 @@ int main(int argc,char** argv) {
 
 	w = w/deigma;
   w = w*4;
+  //printf("w is %d\n", w);
 
 	int** s_h_tables = create_g(K, w, distances);  /*o s_h_tables perilambanei ta s kauemias apo tis h synarthseis*/
 
@@ -136,29 +137,119 @@ int main(int argc,char** argv) {
 
 	f_node **f_functions = create_f_trees(K);
 
+  //printf("waiting to create Hash_Table...\n");
   Hash_Table = bucket_hypercube_creation(image_table, number_of_images, K, f_functions, m_modM, distances, s_h_tables, w, Mconst, twopower);
-
+  //printf("Hash_Table created\n");
   int table_size = power(2, K);
 
-  /*int count = 0;
-  bucket_hypercube *temp;
-  for (int i = 0; i < table_size; i++) {
-		temp = Hash_Table[i];
-		while(temp != NULL)
-		{
-			count++;
-			temp = temp -> next;
+
+	char command[MAX_LENGTH_WORD];
+	char command2[MAX_LENGTH_WORD];
+
+
+  while(1) {
+
+		FILE *fp_qr = fopen(query_file,"r");
+	  FILE *out = fopen(output_file,"a");
+
+		int qr_number_of_im;
+		int qr_dist;
+    input_info(fp_qr, &qr_number_of_im, &qr_dist);
+    //printf("qr_number_of_im=%d qr_dist=%d\n", qr_number_of_im, qr_dist);//to query_file exei 10000 eikones me diastaseis 784
+
+		int *appr_NN = malloc(N*sizeof(int)); //periexei ta image_numbers twn plhsiesterwn geitonwn
+		int *dist_NN = malloc(N*sizeof(int)); //periexei ta distances twn plhsiesterwn geitonwn apo to kaue query
+
+		int *exct_NN = malloc(N*sizeof(int));
+		int *exdist_NN = malloc(N*sizeof(int));
+
+		image_node node;
+		node.pixels = malloc(qr_dist*sizeof(int));
+//////
+		for (int i = 0; i < 100; i++) { //gia kaue eikona apo to query_file  //htan to qr_number_of_im sthn uesh toy 10
+
+			fprintf(out,"Query: %d\n",i);
+
+			for(int j = 0; j < qr_dist; j++) {  /*bale arxika ston pinaka pixels toy node ta pixels ths*/
+
+				unsigned char b;
+				fread(&b, sizeof(unsigned char), 1, fp_qr);
+				int pixel = (int)b;
+				node.pixels[j] = pixel;
+
+			}
+
+			for (int j = 0; j < N; j++) {
+				appr_NN[j] = -1;
+				dist_NN[j] = -1;
+				exct_NN[j] = -1;
+				exdist_NN[j] = -1;
+			}
+
+			////
+			int pos = string01_of_image(&node, f_functions, K, m_modM, distances, s_h_tables, w, Mconst, twopower);
+      /*to pos einai h uesh toy pinaka kat/smoy(toy hypercube) poy ua mpei h sygkekrimenh eikona toy query_file*/
+      if(M > number_of_images) M = number_of_images;
+
+			clock_t t;
+			t = clock();
+			approximeteNN_hypercube(node, pos, Hash_Table, table_size, distances, M, probes, N, appr_NN, dist_NN);
+			t = clock() - t;
+			double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+
+
+			clock_t t1;
+			t1 = clock();
+	    exact_NN(node, image_table, number_of_images, distances, exct_NN, exdist_NN, N);
+			t1 = clock() - t1;
+			double time_taken1 = ((double)t1)/CLOCKS_PER_SEC;
+
+
+      for (int j = 0; j < N; j++) {
+				fprintf(out,"Nearest neighbor-%d: %d\n",j+1,appr_NN[j]);
+				fprintf(out,"distanceHypercube: %d\n",dist_NN[j]);
+				fprintf(out,"distanceTrue: %d\n",exdist_NN[j]);
+      }
+
+			fprintf(out,"tHypercube: %f\n",time_taken);
+			fprintf(out,"tTrue: %f\n",time_taken1);
+
+			fprintf(out,"%s\n","R-near neighbors:");
+      //range_search_cube
+
+			////
+
+
+
 		}
-  }
-	printf("count = %d  number_of_images = %d\n", count, number_of_images);
+
+//////
+    free(node.pixels);
+		fclose(fp_qr);
+		fclose(out);
+
+		free(appr_NN);
+		free(dist_NN);
+		free(exct_NN);
+		free(exdist_NN);
+
+		printf("%s\n","Type the name of new query file and new output file or type NO if you want to terminate the program");
+		scanf("%s",command);
+
+		if(!strcmp(command,"NO"))
+			break;
+		else {
+			memset(query_file, 0, strlen(query_file));
+			strcpy(query_file, command);   /*ua asxolhuw me neo query_file an moy zhthuei apo ton xrhsth*/
+
+	    scanf("%s",command2);
+			memset(output_file, 0, strlen(output_file));
+			strcpy(output_file, command2);
+		}
 
 
-	printf("\nPrint Trees:\n\n");
-	for (int i = 0; i < K; i++) {
-		printf("f%d:\n", i+1);
-		print_tree(f_functions[i]);
-		printf("\n");
-	}*/
+	}
+
 
 
 

@@ -19,6 +19,10 @@ f_node* insert_f_tree(f_node *, int, int *);
 int string01_of_image(image_node *, f_node **, int, int *, int, int**, int, int, int *);
 bucket_hypercube** bucket_hypercube_creation(image_node*, int, int, f_node **, int *, int, int**, int, int, int *);
 int hamming(int, int);
+
+void approximeteNN_hypercube(image_node, int, bucket_hypercube**, int, int, int, int, int, int *, int *);
+//menei h dhlwsh ths rangesearch
+
 void print_tree(f_node *);
 void free_tree(f_node *root);
 void exit_memory_hypercube(char*, char*, char*, image_node*, int, bucket_hypercube**, int);
