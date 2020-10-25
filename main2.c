@@ -215,7 +215,7 @@ int main(int argc,char** argv) {
 			fprintf(out,"tTrue: %f\n",time_taken1);
 
 			fprintf(out,"%s\n","R-near neighbors:");
-    		range_search_cube(hash_table,node, pos, table_size, distances, out, M, R,probes);
+    		range_search_cube(Hash_Table,node, pos, table_size, distances, out, M, R,probes);
 
 		}
 
