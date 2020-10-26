@@ -179,7 +179,7 @@ while(1) {
 	int *exct_NN = malloc(N*sizeof(int));
 	int *exdist_NN = malloc(N*sizeof(int));
 
-	for(int i = 0; i < 100; i++) { /*gia kaue eikona apo to query_file*///anti gia 1 eixa qr_number_of_im
+	for(int i = 0; i < 100; i++) { /*gia kaue eikona apo to query_file*///anti gia 100 eixa qr_number_of_im
 
 		fprintf(out,"Query: %d\n",i);
 

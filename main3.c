@@ -4,68 +4,97 @@
 #include <time.h>
 #include "struct3.h"
 #define MAX_LENGTH_WORD 500
-int main(int argc,char** argv){
+
+int main(int argc, char** argv) {
+
 	srand(time(NULL));
-	int arguments_number=argc-1;
-	int pos=1;
-	image_node* image_table=NULL;
+
+	int arguments_number = argc-1;
+
 	FILE* inptr;
-	FILE* conptr;
+  FILE* outptr;
+
+	image_node* image_table = NULL;
+	int* K_clusters_num; //apouhkeyoyme ta arxika K kentroeidh poy ua paroyme apo ton kmeans++
+
 	int number_of_images;
 	int distances;
-	int* K_clusters_num;
-	FILE* outptr;
+
 	char* input_file;
 	char* configuration_file;
 	char* output_file;
 	char* method;
-	char* optional;
-	int K=0;
-	int number_of_vector_hash_tables;
-	int number_of_vector_hash_functions;
-	int max_number_M_hypercube;
-	int number_of_hypercube_dimensions;
-	int number_of_probes;
-	int coun1=0;
-	int coun2=0;
-	int coun3=0;
-	int coun4=0;
-	int coun5=0;
-	while(1){
-		if(!strcmp("-i",argv[pos])&&coun1==0){
+	int complete = 0; //an complete == 0(den dinetai sthn grammh entolwn) tote emfanizontai mono ta kentra
+                    //an complete == 1(dinetai sthn grammh entolwn) tote emfanizontai ta kentra kai ta shmeia gia kaue cluster
+  int pos = 1;
+	if(arguments_number%2 == 0) arguments_number--; //an den exei dwuei to complete
+
+  while (pos <= arguments_number) {
+
+		if(strcmp(argv[pos],"-i") == 0) {
 			input_file=malloc((strlen(argv[pos+1])+1)*sizeof(char));
 			strcpy(input_file,argv[pos+1]);
-			coun1=1;
-		}
-		else if(!strcmp("-c",argv[pos])&&coun2==0){
+			if(pos == 8) break;
+			pos = pos + 2;
+		} else if(strcmp(argv[pos],"-c") == 0) {
 			configuration_file=malloc((strlen(argv[pos+1])+1)*sizeof(char));
 			strcpy(configuration_file,argv[pos+1]);
-			coun2=1;
-		}
-		else if(!strcmp("-o",argv[pos])&&coun3==0){
+			if(pos == 8) break;
+			pos = pos + 2;
+		} else if(strcmp(argv[pos],"-o") == 0) {
 			output_file=malloc((strlen(argv[pos+1])+1)*sizeof(char));
 			strcpy(output_file,argv[pos+1]);
-			coun3=1;
-		}
-		else if(!strcmp("-m",argv[pos])&&coun4==0){
+			if(pos == 8) break;
+			pos = pos + 2;
+		} else if(strcmp(argv[pos],"-m") == 0) {
 			method=malloc((strlen(argv[pos+1])+1)*sizeof(char));
 			strcpy(method,argv[pos+1]);
-			coun4=1;
+			if(pos == 8) break;
+			pos = pos + 2;
+		} else if(strcmp(argv[pos],"-complete") == 0) {
+			complete = 1;
+			pos = pos + 1;
 		}
-		else if(!strcmp("-complete",argv[pos])&&coun5==0){
-			optional=malloc((strlen(argv[pos+1])+1)*sizeof(char));
-			strcpy(optional,argv[pos+1]);
-			coun5=1;
-		}
-		pos++;
-		if(coun1==1&&coun2==1&&coun3==1&&coun4==1&&coun5==1)
-			break;
-	}
-	inptr=fopen(input_file,"r");
+
+  }
+
+  //Diabazw tis parametroys apo to clusters.conf:
+  FILE *conf_fp;
+	conf_fp = fopen(configuration_file, "r");
+  //gia systades(clustering):
+  int num_of_clusters;
+	//gia LSH:
+	int L_LSH = 3;
+	int k_LSH = 4;
+	//gia Hypercube:
+	int M_hypercube = 10;
+	int k_hypercube = 3;
+	int probes = 2;
+
+
+  for (int i = 0; i < 6; i++) {
+
+  	if(i == 0) fscanf(conf_fp,"%*s %d\n", &num_of_clusters);
+		if(i == 1) fscanf(conf_fp,"%*s %d\n", &L_LSH);
+		if(i == 2) fscanf(conf_fp,"%*s %d\n", &k_LSH);
+		if(i == 3) fscanf(conf_fp,"%*s %d\n", &M_hypercube);
+		if(i == 4) fscanf(conf_fp,"%*s %d\n", &k_hypercube);
+		if(i == 5) fscanf(conf_fp,"%*s %d\n", &probes);
+
+  }
+
+	fclose(conf_fp);
+  ////
+
+
+	inptr = fopen(input_file,"r");
 	input_info(inptr, &number_of_images, &distances);
-	conf_info(configuration_file,&K,&number_of_vector_hash_tables,&number_of_vector_hash_functions,&max_number_M_hypercube,&number_of_hypercube_dimensions,&number_of_probes);
 	image_table = image_creation(inptr, number_of_images, distances);
-	K_clusters_num=initialization_kmeans(K,image_table,number_of_images);
-	exit_memory_cluster(input_file,configuration_file,output_file,method,optional,inptr,image_table,number_of_images,K_clusters_num);
+	K_clusters_num = initialization_kmeans(num_of_clusters, image_table, number_of_images, distances); //efarmozoyme ton kmeans++
+	exit_memory_cluster(input_file, configuration_file, output_file, method, inptr, image_table, number_of_images, K_clusters_num);
+
+
 	return 0;
+
+
 }
