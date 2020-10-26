@@ -1,9 +1,11 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include "struct3.h"
 #define MAX_LENGTH_WORD 500
 int main(int argc,char** argv){
+	srand(time(NULL));
 	int arguments_number=argc-1;
 	int pos=1;
 	image_node* image_table=NULL;
@@ -11,12 +13,19 @@ int main(int argc,char** argv){
 	FILE* conptr;
 	int number_of_images;
 	int distances;
+	int* K_clusters_num;
 	FILE* outptr;
 	char* input_file;
 	char* configuration_file;
 	char* output_file;
 	char* method;
 	char* optional;
+	int K=0;
+	int number_of_vector_hash_tables;
+	int number_of_vector_hash_functions;
+	int max_number_M_hypercube;
+	int number_of_hypercube_dimensions;
+	int number_of_probes;
 	int coun1=0;
 	int coun2=0;
 	int coun3=0;
@@ -54,7 +63,9 @@ int main(int argc,char** argv){
 	}
 	inptr=fopen(input_file,"r");
 	input_info(inptr, &number_of_images, &distances);
+	conf_info(configuration_file,&K,&number_of_vector_hash_tables,&number_of_vector_hash_functions,&max_number_M_hypercube,&number_of_hypercube_dimensions,&number_of_probes);
 	image_table = image_creation(inptr, number_of_images, distances);
-	exit_memory_cluster(input_file,configuration_file,output_file,method,optional,inptr,image_table,number_of_images);
+	K_clusters_num=initialization_kmeans(K,image_table,number_of_images);
+	exit_memory_cluster(input_file,configuration_file,output_file,method,optional,inptr,image_table,number_of_images,K_clusters_num);
 	return 0;
 }
