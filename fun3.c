@@ -7,17 +7,6 @@
 #define MAX_COUNT_WORD 50
 
 
-void exit_memory_cluster(char* input_file,char* configuration_file,char* output_file,char* method,FILE* inptr,image_node* node,int num_img,int* Kmeans) {
-	free(input_file);
-	free(configuration_file);
-	free(output_file);
-	free(method);
-	free(Kmeans);
-	fclose(inptr);
-	for(int i=0;i<num_img;i++)
-		free(node[i].pixels);
-	free(node);
-}
 
 
 
@@ -39,12 +28,12 @@ int* initialization_kmeans(int K, image_node* image_table, int number_of_images,
 	//image_node first_img = image_table[first_K]; //MALLON DEN XREIAZETAI6666^^^^^66666666666666^66^^^^^^^^^^^^^^^^^^^^^^????????????
 
 	int* D = malloc(number_of_images*sizeof(int)); //pinakas me ta D(i)
-
+	
 	D[first_K] = -1;  //se kaue kentro bazw D(i) = -1
 	int t = 1; //to t einai o ariumos twn kentrwn poy exw brei mexri stigmhs
 
 	while(1) {
-
+		
 		if(t == K) //an exw brei ta K kentra teleiwsa
 			break;
 
@@ -61,7 +50,7 @@ int* initialization_kmeans(int K, image_node* image_table, int number_of_images,
 
 
     int max = -1;
-
+    	
 		for (int l = 0; l < number_of_images; l++) { //gia kaue mh kentroeides caxnw na brw thn minimum apostash toy apo kapoio kentro
 			if(D[l] == -1) //an eimai se kentroeides synexise
 				continue;
@@ -74,7 +63,6 @@ int* initialization_kmeans(int K, image_node* image_table, int number_of_images,
 			D[l] = min;
 			if(D[l] > max) max = D[l];
 		}
-
 
 		P* P_table = NULL; //pinakas me ta merika auroismata gia ta mh kentroeidh
 		int coun2 = 0;
@@ -123,4 +111,52 @@ int* initialization_kmeans(int K, image_node* image_table, int number_of_images,
 	return K_clust;
 
 
+}
+
+
+
+
+
+K_in* assignment_LLOYDS(int K,image_node* images,int* info_K,int number_of_images,int distances){
+	K_in* table=malloc(K*sizeof(K_in));
+	for(int e=0;e<K;e++){
+		table[e].img_assing=NULL;
+		table[e].coun_img_assing=0;
+		table[e].K_clust=&images[info_K[e]];
+	}
+	for(int i=0;i<number_of_images;i++){
+		int pos;
+		int min=INT_MAX;
+		for(int h=0;h<K;h++){
+			image_node* kentroeides=table[h].K_clust;
+			int man_dist=manhattan_dist(kentroeides,&images[i],distances);
+			if(man_dist<min){
+				pos=h;
+				min=man_dist;
+			}
+		}
+		table[pos].img_assing=realloc(table[pos].img_assing,(table[pos].coun_img_assing+1)*sizeof(int));
+		table[pos].img_assing[table[pos].coun_img_assing]=i+1;
+		table[pos].coun_img_assing++;
+	}
+	return table;
+}
+
+
+
+
+void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configuration_file,char* output_file,char* method,int* K_clusters_num,image_node* image_table,K_in* K_info_table,int image_number,int K){
+	fclose(inptr);
+	fclose(outptr);
+	free(input_file);
+	free(configuration_file);
+	free(output_file);
+	free(method);
+	free(K_clusters_num);
+	for(int e=0;e<K;e++)
+		free(K_info_table[e].img_assing);
+	free(K_info_table);
+	for(int i = 0; i < image_number; i++)
+		free(image_table[i].pixels);
+	free(image_table);
 }

@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
 	int arguments_number = argc-1;
 
 	FILE* inptr;
-  FILE* outptr;
-
+  	FILE* outptr;
+  	K_in* K_info_table=NULL;
 	image_node* image_table = NULL;
 	int* K_clusters_num; //apouhkeyoyme ta arxika K kentroeidh poy ua paroyme apo ton kmeans++
 
@@ -85,16 +85,20 @@ int main(int argc, char** argv) {
 
 	fclose(conf_fp);
   ////
-
+	
 
 	inptr = fopen(input_file,"r");
+	outptr=fopen(output_file,"a");
 	input_info(inptr, &number_of_images, &distances);
 	image_table = image_creation(inptr, number_of_images, distances);
 	K_clusters_num = initialization_kmeans(num_of_clusters, image_table, number_of_images, distances); //efarmozoyme ton kmeans++
-	exit_memory_cluster(input_file, configuration_file, output_file, method, inptr, image_table, number_of_images, K_clusters_num);
+	
+	if(!strcmp(method,"Classic"))
+		K_info_table=assignment_LLOYDS(num_of_clusters,image_table,K_clusters_num,number_of_images,distances);
+	/*else if(!strcmp(method,"LSH"))
 
-
+	else if(!strcmp(method,"Hypercube"))*/
+	
+	exit_memory_Cluster(inptr,outptr,input_file,configuration_file,output_file,method,K_clusters_num,image_table,K_info_table,number_of_images,num_of_clusters);
 	return 0;
-
-
 }
