@@ -166,7 +166,7 @@ int main(int argc,char** argv) {
 		image_node node;
 		node.pixels = malloc(qr_dist*sizeof(int));
 //////
-		for (int i = 0; i < 100; i++) { //gia kaue eikona apo to query_file  //htan to qr_number_of_im sthn uesh toy 100
+		for (int i = 0; i < qr_number_of_im; i++) { //gia kaue eikona apo to query_file  //htan to qr_number_of_im sthn uesh toy 100
 
 			fprintf(out,"Query: %d\n",i);
 

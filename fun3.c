@@ -240,7 +240,10 @@ double silhouette(int image, int cluster, image_node *kentroeidh, int num_of_clu
     }
 
   }
-
+  if(count_a==0)
+  	a=0;
+  if(count_b==0)
+  	b=0;
   a = ((double)dist_a)/((double)count_a);
   b = ((double)dist_b)/((double)count_b);
 
@@ -248,6 +251,8 @@ double silhouette(int image, int cluster, image_node *kentroeidh, int num_of_clu
   if(a < b) max = b;
   else max = a;
 
+  if(max==0)
+  	return 0;
   result = (b-a)/max;
 
   return result;
@@ -325,7 +330,7 @@ void freeHypercube(int **s_h_tables, int *m_modM, int *twopower, f_node **f_func
 
 
 
-void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configuration_file,char* output_file,char* method,int* K_clusters_num,image_node* image_table,int image_number){
+void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configuration_file,char* output_file,char* method,int* K_clusters_num,image_node* image_table,int image_number,int* assignments,image_node* kentroeidh,int num_of_clusters){
 	fclose(inptr);
 	fclose(outptr);
 	free(input_file);
@@ -333,7 +338,10 @@ void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configu
 	free(output_file);
 	free(method);
 	free(K_clusters_num);
-
+	for (int i = 0; i < num_of_clusters; i++)
+		free(kentroeidh[i].pixels);
+	free(kentroeidh);
+  	free(assignments);
 	for(int i = 0; i < image_number; i++)
 		free(image_table[i].pixels);
 	free(image_table);

@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
 		fprintf(outptr,"%s\n","Algorithm: Lloyds");
 
 		t = clock();
-		for (int i = 0; i < 3; i++) { //i < 20
+		for (int i = 0; i < 10; i++) { //i < 20
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
 				assignments[j] = -1;
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
 
 		t = clock();
 
-		for (int i = 0; i < 3; i++) {  //ua kanw 20 fores ta bhmata anauesh-enhmerwsh toy algoriumoy
+		for (int i = 0; i < 10; i++) {  //ua kanw 20 fores ta bhmata anauesh-enhmerwsh toy algoriumoy
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
 				assignments[j] = -1;
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
 		int *probes_array = malloc(probes*sizeof(int));
 		////
 		t = clock();
-		for (int i = 0; i < 3; i++) {  //sto 1 ebaza 20
+		for (int i = 0; i < 10; i++) {  //sto 1 ebaza 20
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
 				assignments[j] = -1;
@@ -402,12 +402,8 @@ int main(int argc, char** argv) {
 	fprintf(outptr," %f]\n",s_total);
 
 
-	for (int i = 0; i < num_of_clusters; i++)
-		free(kentroeidh[i].pixels);
-	free(kentroeidh);
+	
 
-  free(assignments);
-
-	exit_memory_Cluster(inptr,outptr,input_file,configuration_file,output_file,method,K_clusters_num,image_table,number_of_images);
+	exit_memory_Cluster(inptr,outptr,input_file,configuration_file,output_file,method,K_clusters_num,image_table,number_of_images,assignments,kentroeidh,num_of_clusters);
 	return 0;
 }
