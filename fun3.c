@@ -122,37 +122,6 @@ int* initialization_kmeans(int K, image_node* image_table, int number_of_images,
 
 
 
-/*K_in* assignment_LLOYDS(int K,image_node* image_table,int* Clusters_K,int number_of_images,int distances) {
-
-	K_in* table = malloc(K*sizeof(K_in));
-
-	for (int e = 0; e < K; e++) {
-		table[e].img_assing = NULL;
-		table[e].coun_img_assing = 0;
-		table[e].K_clust = &image_table[Clusters_K[e]];
-	}
-
-	for (int i = 0; i < number_of_images; i++) {
-		int pos;
-		int min = INT_MAX;
-		for (int h = 0; h < K; h++) {
-			image_node* kentroeides = table[h].K_clust;
-			int man_dist = manhattan_dist(kentroeides,&image_table[i],distances);
-			if(man_dist < min) {
-				pos = h;
-				min = man_dist;
-			}
-		}
-		table[pos].img_assing = realloc(table[pos].img_assing,(table[pos].coun_img_assing+1)*sizeof(int));
-		table[pos].img_assing[table[pos].coun_img_assing] = i+1;
-		table[pos].coun_img_assing++;
-	}
-
-	return table;
-
-}*/
-
-
 void Lloyds(int *assignments, image_node* image_table, image_node *kentroeidh, int number_of_images, int num_of_clusters, int distances) {
 
   for (int j = 0; j < number_of_images; j++) { //gia kaue eikona poy antistoixei se kaue uesh toy assignments
@@ -174,33 +143,60 @@ void Lloyds(int *assignments, image_node* image_table, image_node *kentroeidh, i
 }
 
 
+int up_value_fun(int pos) {  //an pos = 7 epistrefei anwtabani(3,5) = 4
+	float val = (double)pos/2.0; //an pos = 4 epistrefei anwtabani(2) = 2
+	int g = (int)val;
+	float y = (float)g +0.5;
 
-void update(int *assignments, image_node* kentroeidh, image_node* image_table, int number_of_images, int num_of_clusters) {
-//kentroeidh[0]
-  int *array = malloc(num_of_clusters*sizeof(int)); //se ayton ton pinaka ua exw gia kaue kentroeides poses eikones toy anateuhkan
-    //an p.x. array[3] = 35 ayto shmainei oti sto cluster me kentro to kentroeidh[3] toy exoyn anateuei 35 eikones
-  for (int i = 0; i < num_of_clusters; i++)
-    array[i] = 0;
-  int cluster;
-
-  for (int i = 0; i < number_of_images; i++) {
-    cluster = assignments[i];
-    array[cluster] = array[cluster] + 1;
-  }
-
-  ////array[3] = 4 --->kentroeidh[3] exw 4 eikones
-  //eikona1(1,4,2,0,...)
-  //eikona2(5,6,5,2,...)
-  //eikona3(6,7,2,4,...)
-  //eikona4(7,3,4,2,...)
-//anwtabani(n/2) = anwtabani(4/2) = 2
-  //neo kentroeides -->
-  //-->1,5,6,7 --> 1<5<6<7
-  // -->(5,4,4,...)
-  //2,5,4 -->2<4<5
+	if(val >= y) return g+1;
+	else return g;
+}
 
 
-  free(array);
+void update(int *assignments, image_node* kentroeidh, image_node* image_table, int number_of_images, int num_of_clusters, int distances) {
+
+	for (int k = 0; k < num_of_clusters; k++) { //gia kaue cluster
+		for (int h = 0; h < distances; h++) { //gia kaue diastash toy
+
+			int coun = 0;
+			int* table_dist = NULL;
+			for (int i = 0; i < number_of_images; i++) { //paw kai tsekarw kaue eikona
+				if(assignments[i] == k) {  //an h eikona ayth anateuhke sto cluster k
+					table_dist = realloc(table_dist,(coun+1)*sizeof(int));
+					table_dist[coun] = image_table[i].pixels[h]; //bale to pixel ths h diastashs ths eikonas ston table_dist
+					coun++;
+				}
+			}
+
+			qsort( table_dist, coun, sizeof(int), compare ); //sortare ton table_dist kata ayjoysa seira
+			int e = 0;
+			int prev_val = -1;
+
+			for (int g = 0; g < coun; g++) { //uelw tis diakrites times//to table_dist mporei na exei {0,1,4,4,8}, egv uelw to {0,1,4,8}
+				if(table_dist[g] > prev_val) {
+					e++;
+					prev_val = table_dist[g]; //table_dist[e];<-----APORIA???????????????
+				}
+			}
+
+      int upper_value = up_value_fun(e);
+      e = 0;
+			prev_val = -1;
+
+			for (int g = 0; g < coun; g++) { //uelw tis diakrites times//to table_dist mporei na exei {0,1,4,4,8}, egv uelw to {0,1,4,8}
+				if(table_dist[g] > prev_val) {
+					e++;
+					prev_val = table_dist[g]; //table_dist[e];<-----APORIA???????????????
+				}
+				if(e == upper_value) {
+					kentroeidh[k].pixels[h] = prev_val;
+					break;
+				}
+			}
+			free(table_dist);
+
+		}
+	}
 
 }
 
@@ -239,6 +235,40 @@ void freeLSH(int *m_modM, bucket ***bucket_ptr_table, int*** s_L_tables, int L_L
 }
 
 
+void freeHypercube(int **s_h_tables, int *m_modM, int *twopower, f_node **f_functions, bucket_hypercube **hash_table, int K, int *probes_array) {
+
+  free(m_modM);
+  free(twopower);
+  free(probes_array);
+
+  for (int i = 0; i < K; i++)
+    free(s_h_tables[i]);
+  free(s_h_tables);
+
+  for (int i = 0; i < K; i++)
+    free_tree(f_functions[i]);
+  free(f_functions);
+
+  int size = power(2, K);
+	for(int i = 0; i < size; i++) {
+
+		bucket_hypercube* e = hash_table[i];
+		bucket_hypercube* k;
+
+		while(1) {
+			if(e == NULL)
+			  break;
+			k = e -> next;
+			free(e);
+			e = k;
+		}
+
+	}
+	free(hash_table);
+
+}
+
+
 
 void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configuration_file,char* output_file,char* method,int* K_clusters_num,image_node* image_table,int image_number){
 	fclose(inptr);
@@ -248,9 +278,7 @@ void exit_memory_Cluster(FILE* inptr,FILE* outptr,char* input_file,char* configu
 	free(output_file);
 	free(method);
 	free(K_clusters_num);
-	/*for(int e=0;e<K;e++)
-		free(K_info_table[e].img_assing);
-	free(K_info_table);*/
+
 	for(int i = 0; i < image_number; i++)
 		free(image_table[i].pixels);
 	free(image_table);

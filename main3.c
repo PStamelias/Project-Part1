@@ -13,7 +13,6 @@ int main(int argc, char** argv) {
 
 	FILE* inptr;
   FILE* outptr;
-  //K_in* K_info_table=NULL;
 	image_node* image_table = NULL;
 	int* K_clusters_num=NULL; //apouhkeyoyme ta arxika K kentroeidh poy ua paroyme apo ton kmeans++
 
@@ -112,14 +111,15 @@ int main(int argc, char** argv) {
 
 	if(!strcmp(method,"Classic")) {
 
-		for (int i = 0; i < number_of_images; i++)
-			assignments[i] = -1;
+		for (int i = 0; i < 3; i++) { //i < 20
 
-		for (int i = 0; i < 1; i++) { //i < 20
+			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
+				assignments[j] = -1;
 			//BHMA ANAUESHS:
 			Lloyds(assignments, image_table, kentroeidh, number_of_images, num_of_clusters, distances);
-			//K_info_table=assignment_LLOYDS(num_of_clusters,image_table,K_clusters_num,number_of_images,distances);
 			//BHMA UPDATE:
+			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
+
 		}
 
 	} else if(!strcmp(method,"LSH")) {
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     unsigned int g_value;
 		int position;
 
-		for (int i = 0; i < 1; i++) {  //ua kanw 20 fores ta bhmata anauesh-enhmerwsh toy algoriumoy
+		for (int i = 0; i < 3; i++) {  //ua kanw 20 fores ta bhmata anauesh-enhmerwsh toy algoriumoy
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
 				assignments[j] = -1;
@@ -188,15 +188,127 @@ int main(int argc, char** argv) {
 			//ua kanw Lloyd's gia osa den exoyn anateuei se kapoio kentroeides
 			Lloyds(assignments, image_table, kentroeidh, number_of_images, num_of_clusters, distances);
 		  //BHMA UPDATE:
-
+			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
 
 		}
 		//exw na apeleuerwsw mnhmh:
 		freeLSH(m_modM, bucket_ptr_table, s_L_tables, L_LSH, k_LSH, table_size);
 
 	} else if(!strcmp(method,"Hypercube")) {
-		//
+
+		int w = 0;
+	  int deigma = 1000;
+		int min_dist = 0;
+
+	  for (int i = 0; i < deigma; ++i) {
+			min_dist = brute_force(image_table, i, deigma, distances);
+			w = w + min_dist;
+	  }
+
+		w = w/deigma;
+	  w = w*4;
+
+		int** s_h_tables = create_g(k_hypercube, w, distances);
+
+		int m = power(2,27) - 5;  /*m = 2^27 - 5*/
+		int exponent = 32/k_hypercube;
+		int Mconst = power(2,exponent);  /*M = 2^(32/K)*/
+
+		int *m_modM;/*o pinakas aytos ua exei ola ta (m)modM poy ua xreiastw kata ton ypologismo twn h synarthsevn*/
+		m_modM = create_mmodM(m, Mconst, distances);
+
+		int *twopower = malloc(k_hypercube*sizeof(int)); /*pinakas me dynameis toy 2 poy ua mas xreiastei gia na metatrepoyme to string se int*/
+		for (int i = 0; i < k_hypercube; i++) {
+			if(i == 0) twopower[i] = 1;
+			else twopower[i] = 2*twopower[i-1];
+		}
+
+		f_node **f_functions = create_f_trees(k_hypercube);
+
+		bucket_hypercube** Hash_Table = NULL;
+		Hash_Table = bucket_hypercube_creation(image_table, number_of_images, k_hypercube, f_functions, m_modM, distances, s_h_tables, w, Mconst, twopower);
+
+		int table_size = power(2, k_hypercube);
+		int position;
+		int *probes_array = malloc(probes*sizeof(int));
+		////
+		for (int i = 0; i < 3; i++) {  //sto 1 ebaza 20
+
+			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
+				assignments[j] = -1;
+			//BHMA ANAUESHS:
+			for (int j = 0; j < num_of_clusters; j++) { //gia kaue kentroeides
+
+				position = string01_of_image(&kentroeidh[j], f_functions, k_hypercube, m_modM, distances, s_h_tables, w, Mconst, twopower);
+				/*to position einai h uesh toy pinaka kat/smoy(toy hypercube) poy ua mpei to sygkekrimeno kentro kentroeidh[j]*/
+				bucket_hypercube *temp = Hash_Table[position];
+			  int hammingVar = 1;
+
+				for (int k = 0; k < probes; ) {  //ua gemisw mia-mia tis ueseis toy pinaka probes_array.Oi prvtes ueseis toy probes_array ua einai ueseis
+			  //toy pinaka kat/smoy me hamming apostash ish me 1 apo thn position uesh,afoy ejantlhuoyn oi ueseis me apostash hamming 1 ua akoloyuhsoyn oi ueseis me hamming apostash 2 kok
+					for (int l = 0; l < table_size; l++) { //gia kaue uesh toy table_size
+						if(l != position) { //(an ayth h uesh den einai h uesh position)
+							if(hamming(l, position) == hammingVar) {  //ejetazw an ayth h uesh exei hamming apostash ish me hammingVar(opoy hammingVar einai 1 arxika)
+								probes_array[k] = l;
+								k++;
+								if(k == probes) break;
+							}
+						}
+					}
+					hammingVar++;
+				}
+
+				int countM = 0;
+				int countProbes = 0;
+				int newPos; //se periptwsh poy xreiastei na paw se kapoion geitona sto hypercube
+
+				while(1) {
+					if(temp != NULL) {
+						int imagetable_pos = (temp -> image -> image_number) - 1;
+            if(assignments[imagetable_pos] == -1) //an h eikona den exei anateuei kapoy
+							assignments[imagetable_pos] = j;    //thn bazw sto kentroeidh[j]
+						else {  //alliws an symbainei collision prepei na thn balw sto kentroeides me to opoio exei thn mikroterh apostash
+							int current = assignments[imagetable_pos];
+							int curDist = manhattan_dist(&image_table[imagetable_pos], &kentroeidh[current], distances);
+							int newDist = manhattan_dist(&image_table[imagetable_pos], &kentroeidh[j], distances);
+							if(newDist < curDist) assignments[imagetable_pos] = j;
+						}
+						countM++;
+						if(countM == M_hypercube) break;  //ejetasa tis M_hypercube ypochfies eikones ara bgainw apo to loop
+						temp = temp -> next;
+						continue;
+					}
+					if(countProbes == probes) break; //ejetasa oloys toys ypochfioys geitones ara bgainw apo to loop
+
+					if(temp == NULL) //an to temp einai NULL shmainei oti prepei na paw se allon geitona
+					{ newPos = probes_array[countProbes];
+						temp = Hash_Table[newPos];
+						countProbes++;
+					}
+				}
+
+			}
+			//ua kanw Lloyd's gia osa den exoyn anateuei se kapoio kentroeides
+			Lloyds(assignments, image_table, kentroeidh, number_of_images, num_of_clusters, distances);
+			//BHMA UPDATE:
+			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
+
+		}
+		////
+		freeHypercube(s_h_tables, m_modM, twopower, f_functions, Hash_Table, k_hypercube, probes_array);
+
 	}
+
+
+
+	for (int ii = 0; ii < num_of_clusters; ii++) {
+		printf("kentro %d:\n", ii+1);
+		for (int jj = 0; jj < distances; jj++) {
+			printf("%d ", kentroeidh[ii].pixels[jj]);
+			if ((jj+1)%28 == 0) printf("\n");
+		} printf("\n");
+	}
+
 
 
 
