@@ -375,6 +375,31 @@ int main(int argc, char** argv) {
 
 	fprintf(outptr,"clustering_time: %f\n",time_taken);
 
+  fprintf(outptr,"%s\n","Silhouette: [");
+	//silhouette:
+	double s_i;
+	double s_total = 0;
+
+	for (int i = 0; i < num_of_clusters; i++) { //gia kaue cluster ua brw to silhouette toy
+
+		s_i = 0;
+		count = 0;
+		for (int j = 0; j < number_of_images; j++) {
+			if(assignments[j] == i) {  //gia kaue eikona j poy anhkei sto cluster i
+				double tempsi = silhouette(j, i, kentroeidh, num_of_clusters, assignments, number_of_images, image_table, distances);
+				s_i = s_i + tempsi;
+				count = count + 1;
+				s_total = s_total + tempsi;
+			}
+		}
+
+		s_i = s_i/count; //<--silhouette toy cluster i
+		fprintf(outptr,"%f,",s_i);
+
+	}
+
+	s_total = s_total/number_of_images;
+	fprintf(outptr," %f]\n",s_total);
 
 
 	for (int i = 0; i < num_of_clusters; i++)

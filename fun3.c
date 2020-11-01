@@ -202,6 +202,61 @@ void update(int *assignments, image_node* kentroeidh, image_node* image_table, i
 
 
 
+double silhouette(int image, int cluster, image_node *kentroeidh, int num_of_clusters, int *assignments, int number_of_images, image_node* image_table, int distances) {
+  //h eikona image_table[image] anhkei sto kentroeidh[cluster]
+  //gia mia eikona ypologizei to (b(i)-a(i))/max{a(i),b(i)}
+  double result;
+
+  double a; //a(i) twn diafaneiwn<-average apostasewn ths eikonas apo tis ypoloipes toy cluster
+  double b; //b(i) twn diafaneiwn<-average apostasewn ths eikonas apo tis eikones toy 2oy kontinoteroy cluster
+
+  int min = INT_MAX;
+  int second, dist;
+  for (int i = 0; i < num_of_clusters; i++) { //sto second ua exw to deytero kontinotero kentroeides sthn eikona image_table[image]
+    if(i != cluster) { //an den eimai sto cluster poy exw hdh thn eikona image mesa, ejetazw an einai to 2o kontinotero sthn eikona moy
+      dist = manhattan_dist(&image_table[image], &kentroeidh[i], distances);
+      if(dist < min) {
+        min = dist;
+        second = i;
+      }
+    }
+  }
+
+  int dist_a = 0;
+  int count_a = 0;
+  int dist_b = 0;
+  int count_b = 0;
+
+  for (int i = 0; i < number_of_images; i++) {
+
+    if(assignments[i] == cluster && i != image) {
+      dist = manhattan_dist(&image_table[image], &image_table[i], distances);
+      dist_a = dist_a + dist;
+      count_a = count_a + 1;
+    } else if(assignments[i] == second) {
+      dist = manhattan_dist(&image_table[image], &image_table[i], distances);
+      dist_b = dist_b + dist;
+      count_b = count_b + 1;
+    }
+
+  }
+
+  a = ((double)dist_a)/((double)count_a);
+  b = ((double)dist_b)/((double)count_b);
+
+  double max;
+  if(a < b) max = b;
+  else max = a;
+
+  result = (b-a)/max;
+
+  return result;
+
+}
+
+
+
+
 void freeLSH(int *m_modM, bucket ***bucket_ptr_table, int*** s_L_tables, int L_LSH, int k_LSH, int table_size) {
 
   free(m_modM);
