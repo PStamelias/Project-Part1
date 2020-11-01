@@ -109,8 +109,14 @@ int main(int argc, char** argv) {
                                                             /*p.x. an sthn uesh assignments[2] exw thn timh 3,ayto shmainei oti*/
                                                             /*h eikona image_table[2] exei anateuei sto kentroeides kentroeidh[3]*/
 
+	clock_t t;
+	double time_taken;
+
 	if(!strcmp(method,"Classic")) {
 
+		fprintf(outptr,"%s\n","Algorithm: Lloyds");
+
+		t = clock();
 		for (int i = 0; i < 3; i++) { //i < 20
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
@@ -121,8 +127,12 @@ int main(int argc, char** argv) {
 			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
 
 		}
+		t = clock() - t;
+		time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
 	} else if(!strcmp(method,"LSH")) {
+
+		fprintf(outptr,"%s\n","Algorithm: Range Search LSH");
 
 		int w = 0;
 		int deigma = 1000; /*gia na brw to w pairnw ena deigma poy einai oi 1000 prwtes eikones*/
@@ -153,6 +163,8 @@ int main(int argc, char** argv) {
 
     unsigned int g_value;
 		int position;
+
+		t = clock();
 
 		for (int i = 0; i < 3; i++) {  //ua kanw 20 fores ta bhmata anauesh-enhmerwsh toy algoriumoy
 
@@ -191,10 +203,14 @@ int main(int argc, char** argv) {
 			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
 
 		}
+		t = clock() - t;
+		time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 		//exw na apeleuerwsw mnhmh:
 		freeLSH(m_modM, bucket_ptr_table, s_L_tables, L_LSH, k_LSH, table_size);
 
 	} else if(!strcmp(method,"Hypercube")) {
+
+		fprintf(outptr,"%s\n","Algorithm: Range Search Hypercube");
 
 		int w = 0;
 	  int deigma = 1000;
@@ -232,6 +248,7 @@ int main(int argc, char** argv) {
 		int position;
 		int *probes_array = malloc(probes*sizeof(int));
 		////
+		t = clock();
 		for (int i = 0; i < 3; i++) {  //sto 1 ebaza 20
 
 			for (int j = 0; j < number_of_images; j++) //arxikopoiw kaue fora ton assignments me -1
@@ -294,6 +311,8 @@ int main(int argc, char** argv) {
 			update(assignments, kentroeidh, image_table, number_of_images, num_of_clusters, distances);
 
 		}
+		t = clock() - t;
+		time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 		////
 		freeHypercube(s_h_tables, m_modM, twopower, f_functions, Hash_Table, k_hypercube, probes_array);
 
@@ -301,14 +320,60 @@ int main(int argc, char** argv) {
 
 
 
-	for (int ii = 0; ii < num_of_clusters; ii++) {
-		printf("kentro %d:\n", ii+1);
-		for (int jj = 0; jj < distances; jj++) {
-			printf("%d ", kentroeidh[ii].pixels[jj]);
-			if ((jj+1)%28 == 0) printf("\n");
-		} printf("\n");
+
+	int count;
+	if(complete == 0) {
+		for (int i = 0; i < num_of_clusters; i++) {
+			fprintf(outptr,"CLUSTER-%d {",i+1);
+
+			count = 0;
+			for (int j = 0; j < number_of_images; j++) {
+				if(assignments[j] == i) count++;
+			}
+			fprintf(outptr,"size: %d, ",count);
+
+			fprintf(outptr,"%s","centroid: ");
+			for (int j = 0; j < distances; j++) {
+				fprintf(outptr,"%d",kentroeidh[i].pixels[j]);
+				if(j != distances-1) fprintf(outptr,"%s",", ");
+			}
+
+			fprintf(outptr, "%s\n", "}");
+		}
 	}
 
+
+
+	if(complete == 1) {
+
+		for (int i = 0; i < num_of_clusters; i++) {
+			fprintf(outptr,"CLUSTER-%d {",i+1);
+
+			fprintf(outptr,"%s","centroid: [");
+			for (int j = 0; j < distances; j++) {
+				fprintf(outptr,"%d",kentroeidh[i].pixels[j]);
+				if(j != distances-1) fprintf(outptr,"%s",", ");
+			}
+			fprintf(outptr,"%s","], ");
+
+			count = 0;
+			for (int j = 0; j < number_of_images; j++) {
+				if(assignments[j] == i) {
+					if(count == 0) {
+					  count++;
+					  fprintf(outptr,"image_number%d",j+1);
+					}
+					else fprintf(outptr,", image_number%d",j+1);
+				}
+			}
+
+			fprintf(outptr, "%s\n", "}");
+		}
+
+	}
+
+
+	fprintf(outptr,"clustering_time: %f\n",time_taken);
 
 
 
