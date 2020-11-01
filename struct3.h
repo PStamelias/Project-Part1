@@ -9,6 +9,7 @@ typedef struct P_info {
 int* initialization_kmeans(int, image_node*, int, int);
 double randfrom(double, double);
 void Lloyds(int *, image_node*, image_node *, int, int, int);
+int up_value_fun(int);
 void update(int *, image_node*, image_node*, int, int, int);
 void freeLSH(int *, bucket ***, int***, int, int, int);
 void freeHypercube(int **, int *, int *, f_node **, bucket_hypercube **, int, int *);
